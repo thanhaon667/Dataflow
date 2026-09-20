@@ -1,0 +1,18 @@
+# Python libraries commonly used for a Data Processing Analyst role
+pandas                  # tabular data processing/analysis
+numpy                   # numerical computation / arrays
+requests                # call REST APIs
+mysql-connector-python  # MySQL connector (official driver)
+PyMySQL                 # MySQL connector (alternative, pure-Python driver)
+SQLAlchemy              # ORM / query builder for databases
+openpyxl                # read/write Excel files (.xlsx)
+python-dotenv           # manage environment variables (.env) - e.g. store DB password
+ipython                 # advanced REPL, handy for quickly testing code
+
+# Added for the ERP project (IT Support + Customer Support)
+psycopg2-binary         # PostgreSQL connector driver
+streamlit               # internal dashboard
+fastapi                 # lead-receiving webhook
+uvicorn[standard]       # server for running FastAPI
+matplotlib              # charts (also used by Power BI's Python visual)
+plotly                  # interactive HTML report charts

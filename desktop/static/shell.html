@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ERP Desk</title>
+<meta name="erp-token" content="__TOKEN__">
+<meta name="erp-streamlit-url" content="__STREAMLIT_URL__">
+<meta name="erp-refresh-seconds" content="__REFRESH_SECONDS__">
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/static/shell.css">
+<link rel="stylesheet" href="/static/report.css">
+<link rel="stylesheet" href="/static/flow.css">
+<link rel="stylesheet" href="/static/flow3d.css">
+</head>
+<body>
+
+<!-- ============ Splash ============ -->
+<div id="splash" role="status" aria-live="polite">
+  <div class="splash-glow g1"></div><div class="splash-glow g2"></div>
+  <div class="splash-card">
+    <div class="splash-mark"><span class="ring"></span><span class="tile"><i></i><i></i><i></i><b></b></span></div>
+    <div class="splash-name">ERP Desk</div>
+    <div class="splash-tag">PROJECT CONTROL &middot; LIVE REPORTING</div>
+    <div class="splash-bar"><span id="splashBar"></span></div>
+    <ul class="splash-steps" id="splashSteps">
+      <li data-step="services"><span class="tick"></span>Starting services</li>
+      <li data-step="report"><span class="tick"></span>Loading the live report</li>
+      <li data-step="mgmt"><span class="tick"></span>Opening Script Center</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============ App shell ============ -->
+<div class="app" id="app">
+  <aside class="rail" aria-label="Main navigation">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><b></b></span>
+      <div class="brand-text"><strong>ERP Desk</strong><small>PROJECT CONTROL</small></div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <span class="nav-ind" id="navInd" aria-hidden="true"></span>
+      <a class="nav-item" href="#reporting" data-view="reporting">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+        <span class="nav-label">Reporting</span><kbd>Ctrl 1</kbd>
+      </a>
+      <a class="nav-item" href="#management" data-view="management">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5l3.2 2.8M17.5 7.5l-3.2 2.8M6.5 16.5l3.2-2.8M17.5 16.5l-3.2-2.8"/></svg>
+        <span class="nav-label">Management</span><kbd>Ctrl 2</kbd>
+      </a>
+      <a class="nav-item" href="#dataflow" data-view="dataflow">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M7.2 12H11c2.4 0 2.4-7 6-7M11 12c2.4 0 2.4 7 6 7"/></svg>
+        <span class="nav-label">Data Flow</span><kbd>Ctrl 3</kbd>
+      </a>
+    </nav>
+
+    <div class="rail-spacer"></div>
+
+    <div class="rail-status" id="railStatus">
+      <div class="rs-title">SERVICES</div>
+      <div class="rs-row" data-svc="report"><span class="dot"></span><span class="rs-name">Live report</span><span class="rs-val" id="rsReport">&hellip;</span></div>
+      <div class="rs-row" data-svc="mgmt"><span class="dot"></span><span class="rs-name">Script Center</span><span class="rs-val" id="rsMgmt">&hellip;</span></div>
+    </div>
+    <button class="rail-btn" id="btnRefresh" title="Refresh the live report now (R)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg><span>Refresh report</span>
+    </button>
+    <button class="rail-btn danger" id="btnQuit" title="Quit ERP Desk and stop all its services">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9M6.4 6.6a8 8 0 1 0 11.2 0"/></svg><span>Quit</span>
+    </button>
+  </aside>
+
+  <main class="stage">
+    <!-- ============ Reporting ============ -->
+    <section class="view" id="view-reporting" aria-label="Reporting">
+      <div class="scroller" id="reportScroll">
+        <div class="rpt" id="rpt">
+
+          <header class="rpt-head reveal">
+            <div class="rpt-head-text">
+              <div class="eyebrow">REPORTING &middot; PROJECT PULSE</div>
+              <h1 class="rpt-title">Customer Support &amp; Lead-to-Sale, live</h1>
+              <p class="rpt-sub" id="rptSub">Connecting to the database&hellip;</p>
+            </div>
+            <div class="live-controls">
+              <div class="live-pill" id="livePill" data-state="connecting" title="Live connection to the report feed">
+                <span class="live-dot"></span><b id="liveLabel">CONNECTING</b><span class="live-ago" id="liveAgo"></span>
+              </div>
+              <label class="select" title="How often this page checks for new data">
+                <span>Auto</span>
+                <select id="pollSel" aria-label="Auto-refresh interval">
+                  <option value="5">5 s</option><option value="10">10 s</option><option value="30">30 s</option>
+                  <option value="60">1 min</option><option value="0">Paused</option>
+                </select>
+              </label>
+              <button class="btn" id="refreshBtn" title="Re-query the database now (R)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh
+              </button>
+            </div>
+          </header>
+
+          <section class="banner reveal" id="banner" aria-live="polite">
+            <span class="banner-blob b1"></span><span class="banner-blob b2"></span>
+            <div class="banner-eyebrow">TODAY'S READ</div>
+            <div class="banner-headline" id="bannerHead">&nbsp;</div>
+            <div class="banner-sub" id="bannerSub">&nbsp;</div>
+          </section>
+
+          <section class="filterbar reveal" id="filterbar" aria-label="Filters"></section>
+
+          <section class="kpis" id="kpis" aria-label="Key numbers"></section>
+
+          <section class="brief reveal" id="brief" aria-label="Today's briefing"></section>
+
+          <section class="grid" id="grid">
+            <article class="panel reveal span-7" id="panel-funnel">
+              <header><h3>Pipeline funnel</h3><span class="hint">click a stage to filter</span></header>
+              <div class="panel-body" id="pFunnel"></div>
+            </article>
+            <article class="panel reveal span-5" id="panel-source">
+              <header><h3>Leads by source</h3><span class="hint">click a slice</span></header>
+              <div class="panel-body"><div class="plot" id="pSource"></div><div class="src-legend" id="pSourceLegend"></div></div>
+            </article>
+            <article class="panel reveal span-5" id="panel-dots">
+              <header><h3>Workload per Sales rep</h3><span class="hint">one square = one lead</span></header>
+              <div class="panel-body" id="pDots"></div>
+            </article>
+            <article class="panel reveal span-7" id="panel-trend">
+              <header><h3>New leads over time</h3><span class="hint">click a day</span></header>
+              <div class="panel-body"><div class="plot" id="pTrend"></div></div>
+            </article>
+            <article class="panel reveal span-4" id="panel-score">
+              <header><h3>Potential score</h3><span class="hint">click a band</span></header>
+              <div class="panel-body"><div class="plot" id="pScore"></div></div>
+            </article>
+            <article class="panel reveal span-4" id="panel-sla">
+              <header><h3>SLA by rep</h3><span class="hint">click a bar</span></header>
+              <div class="panel-body"><div class="plot" id="pSla"></div></div>
+            </article>
+            <article class="panel reveal span-4" id="panel-tickets">
+              <header><h3>Support tickets</h3><span class="hint">by status</span></header>
+              <div class="panel-body" id="pTickets"></div>
+            </article>
+            <article class="panel reveal span-12" id="panel-timeline">
+              <header><h3>Work in progress, per employee</h3><span class="hint">click a bar to filter by employee</span></header>
+              <div class="panel-body"><div class="plot" id="pTimeline"></div></div>
+            </article>
+            <article class="panel reveal span-12" id="panel-ribbon">
+              <header><h3>Latest leads</h3><span class="hint">hover a card to light up its square above</span></header>
+              <div class="panel-body" id="pRibbon"></div>
+            </article>
+          </section>
+
+          <footer class="rpt-foot mono" id="rptFoot">erp_support &middot; PostgreSQL &middot; live view</footer>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Management (Script Center, embedded) ============ -->
+    <section class="view" id="view-management" aria-label="Management">
+      <iframe id="mgmtFrame" title="Script Center" referrerpolicy="no-referrer"></iframe>
+      <div class="frame-overlay" id="mgmtOverlay">
+        <div class="overlay-card">
+          <span class="spinner"></span>
+          <div class="overlay-title" id="mgmtOverlayTitle">Starting Script Center&hellip;</div>
+          <div class="overlay-sub" id="mgmtOverlaySub">This takes a few seconds.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Data Flow ============ -->
+    <section class="view" id="view-dataflow" aria-label="Data Flow">
+      <div class="scroller" id="flowScroll">
+        <div class="flow" id="flow">
+
+          <header class="flow-head">
+            <div class="flow-head-text">
+              <div class="eyebrow">DATA FLOW &middot; HOW THE SYSTEM MOVES</div>
+              <h1 class="flow-title">Where every lead goes, and what moves it</h1>
+              <p class="flow-sub" id="flowSub">Reading the database, the logs and Task Scheduler&hellip;</p>
+            </div>
+            <div class="live-controls">
+              <div class="live-pill" id="flowPill" data-state="connecting" title="Live connection to the data-flow feed">
+                <span class="live-dot"></span><b id="flowLiveLabel">CONNECTING</b><span class="live-ago" id="flowAgo"></span>
+              </div>
+              <button type="button" class="map-pill" id="flowMapPill" hidden></button>
+              <button class="btn accent" id="flowTrace" title="Replay the newest lead's real journey through the pipeline (T)" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg><span>Trace latest lead</span>
+              </button>
+              <button class="btn" id="flowRefresh" title="Re-read everything now (R)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh
+              </button>
+            </div>
+          </header>
+
+          <section class="flow-sync" id="flowSync" aria-label="Map sync check" aria-live="polite" hidden></section>
+
+          <section class="flow-cover" id="flowCover" aria-label="Automation summary"></section>
+
+          <section class="flow-stage" id="flowStage" data-mode="3d" aria-label="Data flow diagram">
+            <div class="stage-bar">
+              <span class="stage-title">PIPELINE MAP &middot; LIVE</span>
+              <div class="mode-tools">
+                <span class="mode-note" id="flowModeNote" role="status" hidden></span>
+                <div class="mode-toggle" role="group" aria-label="Diagram view">
+                  <button type="button" id="flowMode2d" data-mode="2d" aria-pressed="false" title="Flat diagram">2D</button>
+                  <button type="button" id="flowMode3d" data-mode="3d" aria-pressed="true" title="Cinematic 3D scene (WebGL)">3D</button>
+                </div>
+              </div>
+              <span class="stage-hint" id="flowHint">hover for details &middot; click a node to open it &middot; Esc closes</span>
+            </div>
+            <div class="flow-vp-wrap">
+              <div class="flow-viewport" id="flowViewport">
+                <div class="flow-fit" id="flowFit">
+                  <div class="flow-canvas pre" id="flowCanvas"></div>
+                </div>
+              </div>
+              <div class="trace-cap" id="traceCap" aria-live="polite"></div>
+            </div>
+            <div class="flow3d" id="flow3d" aria-label="3D data flow scene">
+              <div class="f3d-view" id="f3dView"></div>
+              <div class="f3d-labels" id="f3dLabels"></div>
+              <div class="f3d-lb top" aria-hidden="true"></div><div class="f3d-lb bottom" aria-hidden="true"></div>
+              <div class="f3d-hud">
+                <span class="f3d-chip mono" id="f3dFps" title="Measured frame rate and current render quality. Quality steps down by itself if the frame rate drops below about 40 fps.">measuring&hellip;</span>
+                <div class="f3d-btns">
+                  <button type="button" class="f3d-btn accent" id="f3dTour" title="Fly the camera along the real journey of the newest lead (T)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg><span>Cinematic tour</span>
+                  </button>
+                  <button type="button" class="f3d-btn" id="f3dReset" title="Back to the overview (Home)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7M4 4v5h5"/></svg><span>Reset view</span>
+                  </button>
+                  <button type="button" class="f3d-btn" id="f3dFull" aria-pressed="false" title="Make the scene taller so the mouse wheel always zooms (F)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Immersive</span>
+                  </button>
+                </div>
+              </div>
+              <div class="trace-cap f3d-cap" id="f3dCap" aria-live="polite"><div class="tc-top"></div><div class="tc-text"></div><div class="tc-at"></div><div class="tc-bar"><span></span></div></div>
+              <div class="f3d-note" id="f3dNote" role="status"></div>
+              <div class="f3d-help mono">drag to orbit &middot; right-drag to pan &middot; click, then scroll to zoom &middot; double-click resets</div>
+            </div>
+            <div class="flow-empty" id="flowEmpty">
+              <div><span class="spinner"></span><b id="flowEmptyTitle">Mapping the pipeline&hellip;</b><span class="msg" id="flowEmptyMsg">Querying the database and the logs.</span></div>
+            </div>
+            <div class="flow-legend" id="flowLegend"></div>
+          </section>
+
+        </div>
+      </div>
+
+      <aside class="flow-drawer" id="flowDrawer" aria-hidden="true" aria-label="Node details"></aside>
+    </section>
+  </main>
+</div>
+
+<!-- ============ Overlays ============ -->
+<div id="tip" class="tip" role="tooltip"></div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<div class="modal" id="quitModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="quitTitle">
+    <div class="modal-icon"><svg viewBox="0 0 24 24"><path d="M12 3v9M6.4 6.6a8 8 0 1 0 11.2 0"/></svg></div>
+    <h2 id="quitTitle">Quit ERP Desk?</h2>
+    <p>This closes the window and stops everything the app started: the live report feed, the daily-digest scheduler and the Script Center.</p>
+    <div class="modal-actions">
+      <button class="btn" id="quitCancel">Keep working</button>
+      <button class="btn danger-solid" id="quitConfirm">Quit</button>
+    </div>
+  </div>
+</div>
+
+<div class="goodbye" id="goodbye" hidden>
+  <div class="goodbye-card">
+    <div class="splash-mark small"><span class="tile"><i></i><i></i><i></i><b></b></span></div>
+    <h2 id="goodbyeTitle">ERP Desk is shutting down</h2>
+    <p id="goodbyeSub">Stopping services&hellip; this window closes by itself.</p>
+  </div>
+</div>
+
+<script src="/static/shell.js"></script>
+<script src="/vendor/plotly.min.js" onerror="window.__plotlyMissing=true"></script>
+<script src="/static/report.js"></script>
+<script src="/static/flow3d/shaders.js"></script>
+<script src="/static/flow3d/engine.js"></script>
+<script src="/static/flow3d/flow3d.js"></script>
+<script src="/static/flow.js"></script>
+</body>
+</html>

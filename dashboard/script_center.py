@@ -76,15 +76,12 @@ st.set_page_config(page_title="Script Center", page_icon=":material/hub:", layou
 # ---------------------------------------------------------------------------
 SCAN_DIRS = ["erp", "dashboard"]  # + project root itself, handled separately
 
-LEARNING_DEMOS = {"postwebhook.py", "sql_change_webhook_demo.py"}
-
 SKILL_COLORS = {
     "Lead-to-Sale": CORAL,
     "Support Tickets": BLUE,
     "Reporting & Dashboards": VIOLET,
     "Operations": GREEN,
     "Integrations": AMBER,
-    "Learning Demos": INK_DIM,
     "Other": OTHER,
 }
 SKILL_ORDER = list(SKILL_COLORS.keys())
@@ -98,15 +95,12 @@ SKILL_ICONS = {
     "Reporting & Dashboards": "insights",
     "Operations": "settings_suggest",
     "Integrations": "hub",
-    "Learning Demos": "school",
     "Other": "folder_open",
 }
 
 
 def categorize_skill(rel_path: str) -> str:
     full = rel_path.lower()  # full relative path, so e.g. "dashboard/script_center.py" matches "dashboard"
-    if rel_path in LEARNING_DEMOS:
-        return "Learning Demos"
     if any(k in full for k in ("lead", "clickup", "ai_client")):
         return "Lead-to-Sale"
     if "ticket" in full:
@@ -157,17 +151,6 @@ ONE_SHOT_SCRIPTS = {
         "module": "erp.emailer",
         "risk": "network",
         "note": "Sends one real test email only if SMTP_* is configured in .env (safe no-op otherwise).",
-    },
-    "postwebhook.py": {
-        "script": True,
-        "risk": "network",
-        "note": "Sends a REAL HTTP POST to an external webhook URL (an external host) - not a local dry run.",
-    },
-    "sql_change_webhook_demo.py": {
-        "script": True,
-        "risk": "network",
-        "note": "Sends REAL HTTP POST(s) to an external webhook URL (an external host) and writes a local "
-                "checkpoint file (last_processed_id.txt) - not a local dry run.",
     },
 }
 

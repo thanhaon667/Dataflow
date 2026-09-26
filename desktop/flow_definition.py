@@ -155,9 +155,6 @@ IGNORE = {
     "desktop/today_build.py": "Today feed panel builders (tiles, attention list, since-yesterday line, detail drawer): part of desktop/today_data.py, pure functions.",
     "desktop/today_health.py": "Today feed health cells and blind-input list, read from the Data Flow snapshot: part of desktop/today_data.py, pure functions.",
     "desktop/today_assemble.py": "Today feed status sentence, rules text and payload assembly: part of desktop/today_data.py, pure functions.",
-    # standalone learning demos (the Script Center lists them as LEARNING_DEMOS too)
-    "postwebhook.py": "Standalone demo that POSTs a sample order to a third-party webhook. Not the lead pipeline.",
-    "sql_change_webhook_demo.py": "Self-contained teaching demo of the polling pattern, runs on mock data.",
     # marketing ingestion pipeline (the marketing_ingest node covers the pipeline itself)
     "erp/marketing/connectors/base.py": "Abstract connector contract (records()/map_record()) and ConnectorError; moves no data on its own - the flat-file, ad_performance, email_campaign and placement_performance connectors implement it.",
     "erp/marketing/perf_check.py": "One-off SCALE VERIFICATION script (throwaway schema, millions of synthetic rows). Not part of the live pipeline - see docs/marketing-data-architecture.md.",

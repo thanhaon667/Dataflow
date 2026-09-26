@@ -99,7 +99,6 @@ run_*.bat / *.vbs / install_*.bat   Launchers (see §9)
 setup_env.bat                       Create venv + install requirements
 README.md                           Quick start
 PROJECT_NOTES.md                    This file
-postwebhook.py, sql_change_webhook_demo.py   Learning demos (kept, marked "Learning Demos" in Script Center)
 ```
 
 Runtime/generated files (gitignored): `.env`, `*.log`, `daily_digest_latest.json`,

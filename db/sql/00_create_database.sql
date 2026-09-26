@@ -1,6 +1,6 @@
 -- =============================================================================
 -- Create a dedicated database + user for the ERP project (fully separate from
--- any other database on the same server, e.g. another app's database).
+-- any other database on the same server, e.g. another application's database).
 --
 -- RUN AS SUPERUSER 'postgres', passing the password via the -v pw variable:
 --

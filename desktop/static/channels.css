@@ -1,0 +1,197 @@
+/* ERP Desk - Channels page (marketing channel performance). Same design language as leads.css / today.css: the tokens come from
+   shell.css, the filter pills / segmented buttons are report.css's, the panels, drawer, empty and unavailable cards are the
+   Leads page's (.ld-*), the sparkline strokes are today.css's (.t-spark). Only what is specific to this page is here.
+   Responsive through a CONTAINER query on .ch (the window can be narrow while the viewport is not). */
+.ch { container-type: inline-size; container-name: ch; max-width: 1320px; margin: 0 auto; padding: 28px 32px 60px; }
+
+/* entrance: staggered, once (channels.js adds .play the first time the page is shown) */
+.ch:not(.play) .ch-rise { opacity: 0; }
+.ch.play .ch-rise { animation: ld-rise .7s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
+
+/* ------------------------------------------------------------------ header */
+.ch-title { font-family: var(--font); font-weight: 700; font-size: clamp(22px, 2.5vw, 32px); line-height: 1.2; margin: 6px 0 8px; text-wrap: balance; max-width: 980px; }
+.ch-title[data-tone="red"] { color: #b32a2f; }
+.ch-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.ch-chips:empty { display: none; }
+.ch-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: #4b4d55; font-size: 11.5px; line-height: 1.3; }
+.ch-chip b { color: var(--ink); font-weight: 600; }
+.ch-chip.code { font-family: var(--code); font-size: 11px; color: #33353d; background: #efece5; border-color: transparent; }
+.ch-chip.warn { background: rgba(242, 183, 5, .14); border-color: rgba(242, 183, 5, .5); color: #6b5200; }
+.ch.stale .ch-kpis, .ch.stale .ch-grid { opacity: .55; filter: saturate(.6); transition: opacity .3s, filter .3s; }
+.ch-warn { margin: 0 0 12px; }
+
+/* ------------------------------------------------------------------ filter bar (the .ld-filters rules do the styling; only the container name differs) */
+@container ch (min-width: 1100px) {
+  .ch-filters .fgroup.fg-multi { flex-basis: 100%; }
+}
+.ch-filters .fgroup.fg-multi .pill { max-width: 240px; }
+.ch-filters .fgroup.fg-multi .pill.on i { box-shadow: 0 0 0 2px rgba(255, 255, 255, .55); }
+
+/* ------------------------------------------------------------------ KPI tiles */
+.ch-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.ch-kpis[hidden] { display: none; }
+.ch-kpi { --kc: var(--blue); position: relative; overflow: hidden; display: flex; flex-direction: column; min-width: 0; padding: 14px 16px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px; transition: transform .25s var(--ease), box-shadow .25s; }
+.ch-kpi::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--kc); opacity: .9; }
+.ch-kpi:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(28, 29, 34, .09); }
+.ch-kpi.flash::before { content: ''; position: absolute; inset: 0; border-radius: 18px; pointer-events: none; animation: t-flash 1.3s ease-out; }
+.ch-kpi-label { font-size: 12.5px; font-weight: 600; color: var(--ink-dim); line-height: 1.25; }
+.ch-kpi-row { margin-top: 2px; }
+.ch-kpi-value { font-family: var(--font); font-size: 32px; font-weight: 700; line-height: 1.08; font-variant-numeric: tabular-nums; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.ch-kpi-value.txt { font-size: 26px; padding-top: 8px; display: inline-block; }
+.ch-kpi-value.dash { color: #b9b5aa; }
+.ch-kpi-value small { font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--ink-dim); margin-left: 2px; }
+.ch-kpi-value.mny { font-size: 25px; letter-spacing: -.02em; }
+.ch-kpi-value em.cur, .ch-kpi-parts em { font-family: var(--font); font-style: normal; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; color: var(--ink-dim); margin-right: 6px; }
+.ch-kpi-value em.cur { display: block; margin: 0 0 1px; }
+.ch-kpi-parts { display: flex; flex-direction: column; gap: 2px; padding-top: 4px; min-width: 0; }
+.ch-kpi-parts span { font-size: 19px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.ch-kpi-parts small { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; color: #7a5f00; margin: -1px 0 2px; text-transform: uppercase; }
+.ch-kpi-delta { min-height: 18px; }
+.ch-kpi-delta .t-delta { white-space: normal; line-height: 1.35; font-size: 11.5px; }
+.ch-kpi-sub { font-size: 12px; line-height: 1.4; color: #4b4d55; margin-top: 4px; }
+.ch-kpi.na .ch-kpi-sub { color: var(--ink-dim); }
+.ch .t-spark { margin: 8px 0 6px; }
+.ch.play .t-spark svg { animation: t-wipe 1s .35s var(--ease) both; }
+.ch.play .t-spark .pt { animation: fade-in .4s 1.2s both; }
+
+/* ------------------------------------------------------------------ panels */
+.ch-grid[hidden] { display: none; }
+.ch-head-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ch-head-tools .seg button { padding: 5px 11px; font-size: 12px; }
+.ch-head-tools .seg button[disabled] { opacity: .4; cursor: not-allowed; }
+.ch-head-tools .linkbtn[hidden] { display: none; }
+.ch-head-tools .linkbtn[disabled] { opacity: .4; cursor: default; text-decoration: none; }
+.ch .ld-plot { min-height: 300px; }
+.ch .ld-plot.ch-plot-week { min-height: 240px; }
+.ch .ld-plot[hidden], .ch .ch-sub[hidden] { display: none; }
+.ch-sub { margin: 10px 0 2px; font-size: 11.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-dim); }
+.ch-sub:empty { display: none; }
+
+/* chart legend (drawn as HTML so the swatches match the table's channel dots, and a click can hide a line) */
+.ch-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 6px; }
+.ch-lg { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 11px 4px 9px;
+  font-size: 12px; font-weight: 600; color: var(--ink); cursor: pointer; transition: opacity .2s, box-shadow .2s; }
+.ch-lg i { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.ch-lg:hover { box-shadow: 0 4px 12px rgba(28, 29, 34, .08); }
+.ch-lg.off { opacity: .5; }
+.ch-lg.off i { background: transparent; box-shadow: inset 0 0 0 1.6px var(--c); }
+.ch-lg:focus-visible, .ch-name:focus-visible, .ch-copy:focus-visible, .ch-head-tools .seg button:focus-visible, .ch-tbl th button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ch-note { margin-top: 2px; }
+
+/* ------------------------------------------------------------------ channel table (also the campaign table) */
+.ch-tbl-wrap { overflow-x: auto; margin: 0 -6px; padding: 0 6px; }
+.ch-tbl { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1100px; }
+.ch-mny em { font-style: normal; font-size: 10.5px; font-weight: 600; letter-spacing: .05em; color: var(--ink-dim); }
+.ch-mny-stack { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.ch-tbl td small.ch-drv { color: #7a5f00; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: 9.5px; }
+.ch-tbl th { text-align: left; padding: 0 10px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; font-weight: 400; font-family: var(--font); font-size: 10px; letter-spacing: .1em; color: var(--ink-dim); text-transform: uppercase; }
+.ch-tbl th.n { text-align: right; }
+.ch-tbl th button { border: 0; background: none; padding: 2px 0; cursor: pointer; font: inherit; letter-spacing: inherit; color: inherit; text-transform: inherit; display: inline-flex; align-items: center; gap: 5px; }
+.ch-tbl th.n button { flex-direction: row-reverse; }
+.ch-tbl th button:hover { color: var(--ink); }
+.ch-tbl th[aria-sort] button { color: var(--blue); }
+.ch-tbl th button .ar { font-size: 9px; opacity: .35; }
+.ch-tbl th[aria-sort] button .ar { opacity: 1; }
+.ch-tbl td { padding: 10px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+.ch-tbl td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ch-tbl tbody tr { --sc: var(--blue); transition: background .2s; }
+.ch-tbl tbody tr:hover td { background: #fbfaf7; }
+.ch-tbl tbody tr.focus td { background: rgba(52, 82, 235, .06); }
+.ch-tbl tbody tr.focus td:first-child { box-shadow: inset 3px 0 0 var(--blue); }
+.ch-tbl td small { display: block; font-size: 10.5px; color: var(--ink-dim); }
+.ch-tbl td.share b { display: block; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ch-share { display: inline-block; width: 74px; height: 6px; border-radius: 4px; background: #efece5; overflow: hidden; vertical-align: middle; }
+.ch-share i { display: block; height: 100%; width: var(--w); min-width: 2px; border-radius: 4px; background: var(--sc, var(--blue)); }
+.ch-share-t { display: inline-block; min-width: 46px; margin-left: 6px; font-size: 11px; color: var(--ink-dim); text-align: right; font-variant-numeric: tabular-nums; }
+.ch-no { font-size: 11px; color: #9a968b; white-space: nowrap; }
+.ch-cnt { font-size: 12px; color: #4b4d55; }
+.ch-name { display: flex; align-items: center; gap: 10px; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.ch-name > i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.ch-name b { display: block; font-weight: 600; font-size: 13.5px; line-height: 1.25; overflow-wrap: anywhere; }
+.ch-name:hover b { text-decoration: underline; }
+.ch-name em { display: block; font-style: normal; font-size: 11px; color: var(--ink-dim); margin-top: 1px; }
+.ch-name em u { text-decoration: none; color: #7a5f00; background: rgba(242, 183, 5, .18); padding: 1px 7px; border-radius: 999px; margin-left: 2px; white-space: nowrap; }
+.ch-name.camp.on b { color: var(--blue); }
+.ch-tbl tfoot td { border-top: 1.5px solid var(--line); border-bottom: 0; background: #faf8f4; font-weight: 600; }
+.ch-tbl tfoot td.l em { display: block; font-style: normal; font-weight: 400; font-size: 11px; color: var(--ink-dim); }
+.ch-tfoot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; font-size: 11.5px; line-height: 1.5; color: var(--ink-dim); }
+.ch-tfoot em { font-style: normal; color: #7a5f00; }
+.ch-sortsel { display: none; align-items: center; gap: 6px; }
+.ch-sortsel select, .ch-sortsel button { height: 30px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 11.5px; padding: 0 8px; color: var(--ink); cursor: pointer; }
+.ch-more { margin: 10px 0 0; font-size: 12.5px; line-height: 1.55; color: #4b4d55; }
+.ch-more b { color: var(--ink); }
+
+/* ------------------------------------------------------------------ setup / empty states */
+.ch-setup { margin-bottom: 14px; }
+.ch-setup-lead { margin: 4px 0 6px; font-size: 14px; line-height: 1.6; color: #3a3c44; max-width: 780px; }
+.ch-setup-lead code { font-family: var(--code); font-size: 12px; background: #efece5; padding: 1px 6px; border-radius: 6px; }
+.ch-steps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.ch-step-h { display: flex; align-items: center; gap: 10px; font-size: 14px; min-width: 0; }
+.ch-step-h b { min-width: 0; overflow-wrap: anywhere; }
+.ch-step-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.ch-cmd { display: flex; align-items: center; gap: 10px; margin: 8px 0 0 34px; background: var(--ink); color: #f5f3ef; border-radius: 12px; padding: 9px 10px 9px 14px; max-width: 900px; }
+.ch-cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: pre; font-family: var(--code); font-size: 12.5px; scrollbar-width: thin; }
+.ch-copy { flex: none; border: 1px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .08); color: #fff; border-radius: 8px; padding: 4px 11px; font-size: 11.5px; font-weight: 600; cursor: pointer; }
+.ch-copy:hover { background: rgba(255, 255, 255, .18); }
+.ch-steps p { margin: 6px 0 0 34px; font-size: 12.5px; line-height: 1.55; color: #4b4d55; max-width: 780px; }
+.ch-ghosts { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.ch-ghost { border: 1.5px dashed #d5cfc2; border-radius: 18px; padding: 14px 16px; color: #9a968b; min-width: 0; }
+.ch-ghost span { display: block; font-size: 12.5px; font-weight: 600; }
+.ch-ghost b { display: block; font-size: 34px; font-weight: 700; color: #cfc9bb; line-height: 1.15; margin: 4px 0 2px; }
+.ch-ghost em { font-style: normal; font-size: 11.5px; }
+.ch-ghost-chart { margin-top: 12px; border: 1.5px dashed #d5cfc2; border-radius: 18px; padding: 34px 22px; text-align: center; color: #9a968b; font-size: 13px; line-height: 1.6; }
+
+/* ------------------------------------------------------------------ how this page stays fast */
+.ch-fast { display: flex; gap: 14px; align-items: flex-start; margin-top: 14px; padding: 15px 18px; border-radius: 18px; background: #efece5; color: #3a3c44; font-size: 13px; line-height: 1.6; }
+.ch-fast[hidden] { display: none; }
+.ch-fast h3 { margin: 0 0 3px; font-family: var(--font); font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.ch-fast p { margin: 0 0 4px; max-width: 900px; }
+.ch-fast code { font-family: var(--code); font-size: 11.5px; background: rgba(255, 255, 255, .7); padding: 1px 6px; border-radius: 6px; }
+.ch-fast-ico { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; }
+.ch-fast-ico svg { width: 15px; height: 15px; stroke-width: 2.2; }
+
+/* the definitions drawer is the Leads one; this view owns its own off-screen parking (lesson L-099) */
+#view-channels { overflow: hidden; }
+
+/* ------------------------------------------------------------------ responsive (container query) */
+@container ch (max-width: 1180px) {
+  .ch-kpi-value { font-size: 38px; }
+  .ch-kpi-value.mny { font-size: 30px; }
+  .ch-kpi-parts span { font-size: 22px; }
+  .ch-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ch-ghosts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container ch (max-width: 700px) {
+  .ch-kpis, .ch-ghosts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ch-filters { position: static; margin: 0 0 14px; }
+  .ch-filters .fcount { margin-left: 0; }
+  .ch-sortsel { display: inline-flex; }
+  .ch-cmd { margin-left: 0; }
+  .ch-cmd code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ch-steps p { margin-left: 0; }
+  /* the wide tables become one card per row */
+  .ch-tbl { min-width: 0; }
+  .ch-tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .ch-tbl, .ch-tbl tbody, .ch-tbl tfoot, .ch-tbl tr, .ch-tbl td { display: block; width: 100%; }
+  .ch-tbl tr { padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  .ch-tbl tbody tr:last-child { border-bottom: 0; }
+  .ch-tbl td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 4px 0; border: 0; text-align: right; }
+  .ch-tbl td::before { content: attr(data-label); flex: none; font-family: var(--font); font-size: 10px; letter-spacing: .08em; color: var(--ink-dim); text-transform: uppercase; }
+  .ch-tbl td.l { display: block; text-align: left; padding-bottom: 8px; }
+  .ch-tbl td.l::before { display: none; }
+  .ch-tbl td.share b { display: inline; }
+  .ch-tbl td.share { flex-wrap: nowrap; }
+  .ch-tbl td.share .ch-share { flex: 1 1 24px; width: auto; min-width: 24px; margin: 0 4px 0 12px; }
+  .ch-tbl td.share .ch-share-t { min-width: 40px; margin-left: 4px; }
+  .ch-tbl tbody tr.focus td:first-child { box-shadow: none; }
+  .ch-tbl tfoot tr { border-top: 1.5px solid var(--line); padding-top: 12px; background: transparent; }
+  .ch-tbl tfoot td { background: transparent; border-top: 0; }
+  .ch-tbl-wrap { overflow-x: visible; }
+}
+@container ch (max-width: 460px) { .ch-kpis, .ch-ghosts { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .ch { padding: 20px 16px 50px; } }
+@media (prefers-reduced-motion: reduce) {
+  .ch .ch-rise { opacity: 1 !important; animation: none !important; }
+  .ch.play .t-spark svg, .ch.play .t-spark .pt { animation: none !important; }
+}

@@ -20,8 +20,8 @@
     return null;
   }
   var api = {
-    get: function (path) {
-      return fetch(path, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(path + ' -> ' + r.status); return r.json(); });
+    get: function (path, opts) {                   // opts.signal (AbortController) lets a caller give up on a slow answer
+      return fetch(path, { cache: 'no-store', signal: opts && opts.signal }).then(function (r) { if (!r.ok) throw new Error(path + ' -> ' + r.status); return r.json(); });
     },
     post: function (path) {
       return fetch(path, { method: 'POST', headers: { 'X-ERP-Desk-Token': TOKEN } })
@@ -43,11 +43,38 @@
     while (box.children.length > 4) box.firstChild.remove();
   }
 
+  // ---- typography ---------------------------------------------------------
+  // shell.css (--font / --code) is the single source of the font. Everything that cannot use CSS (Plotly layouts,
+  // canvas / WebGL text, vis-network) reads it from here. fontsReady(cb) runs cb once the web font is usable (or has
+  // failed / timed out: the fallback stack is then already what is on screen). Plotly caches every text measurement
+  // (keyed by text + style), so a chart first drawn in the fallback font keeps the wrong label widths for good:
+  // charts therefore wait for fontsReady before their FIRST draw (see draw() in report.js, plot() in leads.js).
+  function cssVar(name, fallback) {
+    try { var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim(); if (v) return v; } catch (e) { /* ignore */ }
+    return fallback;
+  }
+  var FONT = cssVar('--font', "'Montserrat', 'Segoe UI', system-ui, sans-serif");
+  var CODE_FONT = cssVar('--code', "Consolas, 'Cascadia Mono', monospace");
+  var fontsDone = false;
+  function fontFamilyName() { return FONT.split(',')[0].replace(/["']/g, '').trim(); }
+  function loadFonts() {
+    var finish = function () { if (fontsDone) return; fontsDone = true; emit('fonts'); };
+    if (!document.fonts || !document.fonts.load) { finish(); return; }
+    var name = '"' + fontFamilyName() + '"';
+    // Exactly the weights the <link> in shell.html asks for (erp/typography.py FONT_WEIGHTS, kept in step by smoke
+    // check 6): one weight too many is a font file downloaded for nothing AND a later first chart draw, since every
+    // chart waits for Promise.all of this list (L-113).
+    var faces = ['400', '500', '600', '700'].map(function (w) { return document.fonts.load(w + ' 14px ' + name).catch(function () { return []; }); });
+    Promise.all(faces).then(finish, finish);
+    setTimeout(finish, 4000);                      // blocked / offline network: do not wait for ever
+  }
+  function fontsReady(cb) { if (fontsDone) { try { cb(); } catch (e) { console.error(e); } } else on('fonts', cb); }
+
   window.Desk = { api: api, esc: esc, store: store, toast: toast, on: on, emit: emit, token: TOKEN, view: function () { return current; },
-                  go: function (name) { setView(name); } };
+                  go: function (name) { setView(name); }, font: FONT, codeFont: CODE_FONT, fontsReady: fontsReady, fontsDone: function () { return fontsDone; } };
 
   // ---- navigation ---------------------------------------------------------
-  var VIEWS = ['reporting', 'management', 'dataflow'];
+  var VIEWS = ['today', 'reporting', 'management', 'dataflow', 'leads', 'health', 'channels'];   // order = order of the .nav-item links in shell.html
   var current = null;
   var frameLoaded = false;
 
@@ -61,7 +88,7 @@
   }
 
   function setView(name, opts) {
-    if (VIEWS.indexOf(name) < 0) name = 'reporting';
+    if (VIEWS.indexOf(name) < 0) name = 'today';
     if (name === current) return;
     current = name;
     $$('.view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-' + name); });
@@ -95,10 +122,14 @@
   document.addEventListener('keydown', function (e) {
     var tag = (e.target && e.target.tagName) || '';
     var typing = /INPUT|TEXTAREA|SELECT/.test(tag) || (e.target && e.target.isContentEditable);
-    if ((e.ctrlKey || e.metaKey) && e.key === '1') { e.preventDefault(); setView('reporting'); }
-    else if ((e.ctrlKey || e.metaKey) && e.key === '2') { e.preventDefault(); setView('management'); }
-    else if ((e.ctrlKey || e.metaKey) && e.key === '3') { e.preventDefault(); setView('dataflow'); }
-    else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'r' || e.key === 'R') && (current === 'reporting' || current === 'dataflow')) { e.preventDefault(); emit('refresh-request'); }
+    if ((e.ctrlKey || e.metaKey) && e.key === '1') { e.preventDefault(); setView('today'); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '2') { e.preventDefault(); setView('reporting'); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '3') { e.preventDefault(); setView('management'); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '4') { e.preventDefault(); setView('dataflow'); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '5') { e.preventDefault(); setView('leads'); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '6') { e.preventDefault(); setView('health'); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '7') { e.preventDefault(); setView('channels'); }
+    else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'r' || e.key === 'R') && (current === 'today' || current === 'reporting' || current === 'dataflow' || current === 'leads' || current === 'health' || current === 'channels')) { e.preventDefault(); emit('refresh-request'); }
     else if (e.key === 'Escape') hideQuit();
   });
 
@@ -215,9 +246,13 @@
   // ---- boot ---------------------------------------------------------------
   on('report-loaded', function () { markStep('report'); });
   var first = $('#splashSteps li'); if (first) first.classList.add('active');
-  var initial = (location.hash || '').replace('#', '') || store('erpdesk.view') || 'reporting';
+  // The app always OPENS on Today (the landing page); a #hash in the URL (a reload, a bookmark) still wins.
+  var initial = (location.hash || '').replace('#', '');
+  if (VIEWS.indexOf(initial) < 0) initial = 'today';
   setView(initial, { silent: true });
   try { history.replaceState(null, '', '#' + current); } catch (e) { /* ignore */ }
   // Fonts change the row heights the indicator is measured from.
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moveIndicator(current); });
+  fontsReady(function () { moveIndicator(current); });
+  loadFonts();
 })();

@@ -1,0 +1,37 @@
+/* ERP Desk - Channels page, Placements panel. Tokens, the table chrome (.ch-tbl, .ch-tfoot, .ch-no, .ch-mny ...) and the panel / setup states come from
+   shell.css / leads.css / channels.css / insights.css; only what is specific to the placements table is here. The panel keeps a minimum height while
+   it loads so the page below does not jump. Font: var(--font) for everything people read, var(--code) only for the literal commands. */
+.pl-body { min-height: 160px; }
+.pl-tbl { min-width: 960px; }
+.pl-tbl td.l { max-width: 340px; }
+.pl-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pl-name b { font-weight: 600; overflow-wrap: anywhere; line-height: 1.35; }
+.pl-name em { font-style: normal; font-size: 11px; color: var(--ink-dim); }
+.pl-tbl tr.pl-other td { background: #faf8f4; }
+.pl-tbl tr.pl-other .pl-name b { font-weight: 500; color: #4b4d55; font-style: italic; }
+.pl-tbl td small { display: block; font-size: 10.5px; color: var(--ink-dim); white-space: nowrap; }
+.pl-tbl tfoot td.l b { display: block; }
+
+.pl-setup { margin: 10px 0 4px; padding: 14px 16px; border-radius: 16px; background: #efece5; max-width: 980px; }
+.pl-setup h4 { margin: 0 0 8px; font-family: var(--font); font-size: 14px; font-weight: 600; }
+.pl-setup ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+.pl-setup li { font-size: 12.5px; line-height: 1.5; color: #33353d; }
+.pl-setup li span { display: block; margin-bottom: 3px; }
+.pl-setup code { display: block; padding: 7px 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); font-family: var(--code); font-size: 11.5px;
+  overflow-x: auto; white-space: pre; color: var(--ink); }
+
+.pl-defs { margin-top: 12px; font-size: 12px; color: #4b4d55; }
+.pl-defs summary { cursor: pointer; font-weight: 600; }
+.pl-defs summary:focus-visible, #plBody .linkbtn:focus-visible, #plCsv:focus-visible, .pl-tbl th button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.pl-defs dl { margin: 8px 0 0; display: grid; grid-template-columns: minmax(120px, 200px) 1fr; gap: 6px 14px; max-width: 980px; }
+.pl-defs dt { font-weight: 600; color: #33353d; }
+.pl-defs dd { margin: 0; line-height: 1.55; }
+@media (max-width: 720px) {
+  .pl-tbl { min-width: 0; }
+  .pl-tbl td.l { max-width: none; }
+  .pl-defs dl { grid-template-columns: 1fr; gap: 2px; }
+  .pl-defs dd { margin-bottom: 8px; }
+}
+.pl-tbl td:first-child { min-width: 200px; }
+.pl-tbl td.l:nth-child(2), .pl-tbl td.l:nth-child(3) { white-space: nowrap; }
+@media (max-width: 720px) { .pl-tbl td:first-child { min-width: 0; } }

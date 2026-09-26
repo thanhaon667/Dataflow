@@ -1,0 +1,56 @@
+/* ERP Desk - Channels page, Insights panel. Tokens and panel / drawer chrome come from shell.css / leads.css / channels.css; only what is
+   specific to the finding cards is here. The panel keeps a minimum height while it loads so the page below does not jump. */
+.ins-body { min-height: 220px; }
+.ins-wait { color: var(--ink-dim); font-size: 13px; padding: 18px 2px; }
+.ins-head { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.ins-head b { font-size: 16px; font-weight: 700; line-height: 1.35; }
+.ins-head span { font-size: 12.5px; color: var(--ink-dim); }
+.ins-head[data-tone="red"] b { color: #b32a2f; }
+.ins-head[data-tone="green"] b { color: #0b7a58; }
+.ins-win { margin: 0 0 6px; font-size: 12.5px; line-height: 1.6; color: #4b4d55; max-width: 980px; }
+.ins-win b { color: var(--ink); }
+.ins-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 10px; font-size: 12px; color: var(--ink-dim); }
+.ins-err { margin: 6px 0; font-size: 12px; color: #7a5f00; }
+
+.ins-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; margin: 10px 0 6px; }
+.ins-card { --sc: var(--blue); position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px 16px 14px 18px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.ins-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--sc); }
+.ins-card[data-sev="crit"] { --sc: var(--red); }
+.ins-card[data-sev="warn"] { --sc: var(--amber); }
+.ins-card[data-sev="info"] { --sc: var(--blue); }
+.ins-top { display: flex; align-items: center; gap: 8px; }
+.ins-sev { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: var(--sc); padding: 2px 9px; border-radius: 999px; }
+.ins-card[data-sev="warn"] .ins-sev { color: #4a3a00; }
+.ins-conf { font-size: 11px; color: var(--ink-dim); border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; }
+.ins-conf.thin { color: #7a5f00; border-color: rgba(242, 183, 5, .6); background: rgba(242, 183, 5, .12); }
+.ins-card h4 { margin: 0; font-family: var(--font); font-size: 14px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.ins-meta { display: flex; flex-wrap: wrap; gap: 5px; }
+.ins-meta span { font-size: 11px; background: #efece5; border-radius: 999px; padding: 2px 9px; color: #3a3c44; }
+.ins-ev { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ins-ev li { display: flex; gap: 7px; font-size: 12px; line-height: 1.5; color: #3a3c44; }
+.ins-ev li > span:first-child { flex: none; width: 12px; text-align: center; color: var(--green); }
+.ins-ev li.unmet > span:first-child { color: #9a968b; }
+.ins-ev li.ctx > span:first-child { color: var(--ink-dim); }
+.ins-ev li > span:last-child { min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.ins-act { margin: 2px 0 0; padding-top: 8px; border-top: 1px solid var(--grid); font-size: 12.5px; line-height: 1.55; color: #33353d; }
+.ins-act b { display: block; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 2px; }
+.ins-notes { margin: 10px 0 0; padding-left: 18px; font-size: 12px; line-height: 1.6; color: #4b4d55; }
+
+.ins-auto { margin-top: 14px; padding: 12px 16px; border-radius: 16px; background: #efece5; }
+.ins-auto h5 { margin: 0 0 6px; font-family: var(--font); font-size: 13px; font-weight: 600; }
+.ins-auto h5 em { font-style: normal; font-weight: 400; font-size: 11.5px; color: var(--ink-dim); margin-left: 6px; }
+.ins-auto ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.ins-auto li { display: flex; flex-direction: column; gap: 2px; font-size: 12px; line-height: 1.5; }
+.ins-auto li b { font-size: 12.5px; }
+.ins-auto li small { color: var(--ink-dim); font-size: 11px; }
+.ins-rules { margin-top: 12px; font-size: 12px; color: #4b4d55; }
+.ins-rules summary { cursor: pointer; font-weight: 600; }
+.ins-rules ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.6; }
+.ins-rules summary:focus-visible, #insBody .linkbtn:focus-visible, #insHow:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ins-thr { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 11.5px; }
+.ins-thr th, .ins-thr td { text-align: left; vertical-align: top; padding: 3px 6px 3px 0; border-bottom: 1px solid var(--grid); font-weight: 400; }
+.ins-thr th { font-family: var(--code); font-size: 10.5px; white-space: nowrap; color: #33353d; }
+.ins-thr td:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .ins-card { transition: none; } }
+.ins-meta span.ins-est { background: rgba(124, 92, 255, .14); color: #4a34b5; font-weight: 700; letter-spacing: .06em; }

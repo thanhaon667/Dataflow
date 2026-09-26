@@ -12,12 +12,13 @@ runner (safe one-shot vs. server-script distinction), structured JSON-lines
 logging, email-on-failure, and the daily digest panel all still work exactly
 as before - only the presentation changed.
 
-Run (separate port from the main dashboard on 8501, so both can run together):
+Run (on its own port, 8502):
     venv\\Scripts\\python.exe -m streamlit run dashboard/script_center.py --server.port 8502
 
 Or just double-click run_script_center.bat, which also applies this tool's
 brand theme via CLI flags (kept out of .streamlit/config.toml on purpose, so
-it never affects dashboard/streamlit_app.py).
+the theme travels with this launch only). ERP Desk embeds this page as its
+Management tab and starts it the same way on port 47651.
 """
 import ast
 import html
@@ -34,6 +35,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))  # allow "import erp" from the project root
 
 from erp import emailer  # noqa: E402
+from erp.typography import FONT_NAME, FONT_STACK, GOOGLE_FONTS_CSS_URL, streamlit_font_css  # noqa: E402
 
 try:
     from erp.daily_digest import METRIC_LABELS as DIGEST_METRIC_LABELS  # noqa: E402
@@ -44,12 +46,15 @@ LOG_FILE = PROJECT_ROOT / "script_center.log"
 DIGEST_LATEST_FILE = PROJECT_ROOT / "daily_digest_latest.json"
 
 # ---------------------------------------------------------------------------
-# Palette + fonts - kept identical to erp/html_report.py so this tool reads
-# as part of the same product. Native widget theming (buttons, selectboxes,
+# Palette + fonts - the project's one design language (also in
+# desktop/static/shell.css), so this tool reads as part of the same product:
+# Montserrat for everything people read, a monospace only for literal code
+# (the editor, file paths, logs); the tokens live in erp/typography.py.
+# Native widget theming (buttons, selectboxes,
 # dataframe, borders, radius) is applied separately via CLI --theme.* flags
 # in run_script_center.bat, deliberately NOT via .streamlit/config.toml,
-# because config.toml is shared by CWD and would silently reskin the
-# existing dashboard/streamlit_app.py too.
+# so the theme belongs to this launch instead of to every Streamlit app
+# started from this folder.
 # ---------------------------------------------------------------------------
 INK = "#1c1d22"
 INK_DIM = "#6b6f76"
@@ -99,7 +104,7 @@ SKILL_ICONS = {
 
 
 def categorize_skill(rel_path: str) -> str:
-    full = rel_path.lower()  # full relative path, so e.g. "dashboard/streamlit_app.py" matches "dashboard"
+    full = rel_path.lower()  # full relative path, so e.g. "dashboard/script_center.py" matches "dashboard"
     if rel_path in LEARNING_DEMOS:
         return "Learning Demos"
     if any(k in full for k in ("lead", "clickup", "ai_client")):
@@ -118,7 +123,7 @@ def categorize_skill(rel_path: str) -> str:
 # ---------------------------------------------------------------------------
 # One-shot / server script metadata (see README for the full list + reasons)
 # ---------------------------------------------------------------------------
-SERVER_SCRIPTS = {"erp/webhook_app.py", "dashboard/streamlit_app.py", "dashboard/script_center.py"}
+SERVER_SCRIPTS = {"erp/webhook_app.py", "dashboard/script_center.py"}
 
 ONE_SHOT_SCRIPTS = {
     "erp/daily_check.py": {
@@ -142,16 +147,6 @@ ONE_SHOT_SCRIPTS = {
         "risk": "db",
         "note": "Inserts new rows into lead_updates and updates sync timestamps - writes to the real database.",
     },
-    "erp/task_timeline_chart.py": {
-        "module": "erp.task_timeline_chart",
-        "risk": "local_file",
-        "note": "Read-only DB query; overwrites task_timeline.png in the project root.",
-    },
-    "erp/html_report.py": {
-        "module": "erp.html_report",
-        "risk": "local_file",
-        "note": "Read-only DB query; overwrites erp_report.html in the project root.",
-    },
     "erp/daily_digest.py": {
         "module": "erp.daily_digest",
         "risk": "local_file",
@@ -166,12 +161,12 @@ ONE_SHOT_SCRIPTS = {
     "postwebhook.py": {
         "script": True,
         "risk": "network",
-        "note": "Sends a REAL HTTP POST to an external webhook URL - not a local dry run.",
+        "note": "Sends a REAL HTTP POST to an external webhook URL (an external host) - not a local dry run.",
     },
     "sql_change_webhook_demo.py": {
         "script": True,
         "risk": "network",
-        "note": "Sends REAL HTTP POST(s) to an external webhook URL and writes a local "
+        "note": "Sends REAL HTTP POST(s) to an external webhook URL (an external host) and writes a local "
                 "checkpoint file (last_processed_id.txt) - not a local dry run.",
     },
 }
@@ -348,7 +343,7 @@ def build_mindmap_html(scripts: list[dict]) -> str:
     nodes = [{
         "id": "root", "label": "Python\nScripts", "shape": "dot", "size": 40,
         "color": {"background": INK, "border": INK},
-        "font": {"color": "#ffffff", "size": 18, "face": "Fraunces, Georgia, serif", "bold": "600"},
+        "font": {"color": "#ffffff", "size": 18, "face": FONT_STACK},
     }]
     edges = []
 
@@ -362,7 +357,7 @@ def build_mindmap_html(scripts: list[dict]) -> str:
             "id": gid, "label": f"{skill} ({len(group)})", "shape": "box",
             "color": {"background": color, "border": color,
                       "highlight": {"background": color, "border": INK}},
-            "font": {"color": "#ffffff", "size": 13, "face": "'Public Sans', sans-serif", "bold": "600"},
+            "font": {"color": "#ffffff", "size": 13, "face": FONT_STACK},
             "margin": 10, "shapeProperties": {"borderRadius": 10},
         })
         edges.append({"from": "root", "to": gid, "color": {"color": color, "opacity": 0.55}, "width": 3})
@@ -375,7 +370,7 @@ def build_mindmap_html(scripts: list[dict]) -> str:
                 "size": min(11 + s["line_count"] / 35, 20),
                 "color": {"background": "#ffffff", "border": color,
                           "highlight": {"background": color, "border": INK}},
-                "font": {"color": INK, "size": 11, "face": "'IBM Plex Mono', monospace"},
+                "font": {"color": INK, "size": 11, "face": FONT_STACK},
                 "borderWidth": 2, "title": title,
             })
             edges.append({"from": gid, "to": sid, "color": {"color": color, "opacity": 0.4}, "width": 1.5})
@@ -392,25 +387,28 @@ def build_mindmap_html(scripts: list[dict]) -> str:
 
     return f"""<!doctype html>
 <html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="{GOOGLE_FONTS_CSS_URL}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/styles/vis-network.min.css">
 <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
 <style>
   html,body {{ margin:0; padding:0; background:{SURFACE}; cursor:default; }}
   #mindmap {{ width:100%; height:640px; }}
   .vis-tooltip {{
-    font-family:'Public Sans',sans-serif !important; font-size:12.5px !important;
+    font-family:{FONT_STACK} !important; font-size:12.5px !important;
     background:{INK} !important; color:#fff !important; border:none !important;
     border-radius:8px !important; padding:8px 10px !important; max-width:280px; white-space:pre-line !important;
   }}
   #mindmap-fallback {{
     display:none; height:640px; align-items:center; justify-content:center; text-align:center;
-    font-family:'Public Sans',sans-serif; color:{INK_DIM}; padding:0 40px; flex-direction:column; gap:8px;
+    font-family:{FONT_STACK}; color:{INK_DIM}; padding:0 40px; flex-direction:column; gap:8px;
   }}
 </style></head>
 <body>
 <div id="mindmap"></div>
 <div id="mindmap-fallback">
-  <div style="font-family:'Fraunces',serif;font-size:18px;color:{INK};">Mindmap couldn't load</div>
+  <div style="font-size:18px;font-weight:700;color:{INK};">Mindmap couldn't load</div>
   <div>This visual needs an internet connection to reach cdn.jsdelivr.net (blocked by a firewall/proxy, or you're offline). The rest of the dashboard still works normally.</div>
 </div>
 <script>
@@ -418,6 +416,9 @@ def build_mindmap_html(scripts: list[dict]) -> str:
     document.getElementById('mindmap').style.display = 'none';
     document.getElementById('mindmap-fallback').style.display = 'flex';
   }} else {{
+  // vis-network measures and draws its labels on a <canvas> ONCE, in whatever font is usable at that moment. Wait for
+  // the web font (max 2.5 s: offline / blocked -> the fallback stack is used) so labels are not sized for the fallback.
+  function startMindmap() {{
   var nodes = new vis.DataSet({nodes_json});
   var edges = new vis.DataSet({edges_json});
   var network = new vis.Network(
@@ -443,12 +444,19 @@ def build_mindmap_html(scripts: list[dict]) -> str:
   network.on('blurNode', function (params) {{ post('unhover', params.node); }});
   network.body.container.style.cursor = 'grab';
   }}
+  var started = false;
+  function go() {{ if (started) return; started = true; startMindmap(); }}
+  if (document.fonts && document.fonts.load) {{
+    Promise.all(['400', '600', '700'].map(function (w) {{ return document.fonts.load(w + ' 14px "{FONT_NAME}"').catch(function () {{ return []; }}); }})).then(go, go);
+    setTimeout(go, 2500);
+  }} else {{ go(); }}
+  }}
 </script>
 </body></html>"""
 
 
 # ---------------------------------------------------------------------------
-# Static brand CSS (matches erp/html_report.py) - additive .sc-* classes
+# Static brand CSS (the project's shared design language) - additive .sc-* classes
 # only, never overrides Streamlit's own internal DOM/classes, except for the
 # handful of `div[class*="st-key-..."]` selectors documented inline below,
 # which style Streamlit's own st.container(key=...) wrapper divs (the only
@@ -459,12 +467,19 @@ def inject_css() -> None:
     st.html(f"""
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('{GOOGLE_FONTS_CSS_URL}');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=block');
 
 .material-symbols-outlined {{ font-family:'Material Symbols Outlined'; font-weight:400; font-style:normal;
   font-size:18px; line-height:1; letter-spacing:normal; text-transform:none; display:inline-block;
   white-space:nowrap; word-wrap:normal; direction:ltr; vertical-align:middle; }}
+
+/* Typography (erp/typography.py): Montserrat for everything people read; a monospace only for literal code
+   (the editor, file paths, log / terminal output). Applied to the app root too, so the page is Montserrat even
+   when it is started without run_script_center.bat's --theme.font flags. */
+{streamlit_font_css(include_import=False, code_widget_keys=("sc_editor",))}
+/* file paths and error text in the cards are literal code: keep the monospace over the blanket rule above */
+.stApp .sc-card-path, .stApp .sc-feed-err {{ font-family:var(--code) !important; }}
 
 /* Force this tool's light background regardless of how the app is launched.
    run_script_center.bat passes --theme.* CLI flags, but this page can also be
@@ -519,12 +534,12 @@ div[class*="st-key-slide_logs"] {{
 /* Numbered "chapter" divider that opens every slide, editorial-report style */
 .sc-eyebrow {{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }}
 .sc-eyebrow-num {{
-  font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:500; color:#fff;
+  font-family:var(--font); font-size:11px; font-weight:500; color:#fff;
   background:{INK}; border-radius:999px; padding:3px 9px; letter-spacing:.03em;
 }}
-.sc-eyebrow-label {{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.12em;
+.sc-eyebrow-label {{ font-family:var(--font); font-size:11px; letter-spacing:.12em;
   text-transform:uppercase; color:{INK_DIM}; }}
-.sc-slide-title {{ font-family:'Fraunces',serif; font-weight:700; font-size:clamp(20px,2.6vw,28px);
+.sc-slide-title {{ font-family:var(--font); font-weight:700; font-size:clamp(20px,2.6vw,28px);
   color:{INK}; margin:2px 0 4px; }}
 .sc-slide-sub {{ font-size:13px; color:{INK_DIM}; margin-bottom:18px; max-width:680px; line-height:1.55; }}
 
@@ -542,31 +557,31 @@ div[class*="st-key-slide_logs"] {{
 
 /* ---------- Masthead + hero ---------- */
 .sc-masthead {{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px; }}
-.sc-brand {{ display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-weight:600; font-size:19px; color:{INK}; }}
+.sc-brand {{ display:flex; align-items:center; gap:10px; font-family:var(--font); font-weight:600; font-size:19px; color:{INK}; }}
 .sc-brand-mark {{ width:30px; height:30px; border-radius:9px; background:linear-gradient(135deg,{CORAL},{VIOLET}); flex:none; }}
-.sc-meta {{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:{INK_DIM}; }}
+.sc-meta {{ font-family:var(--font); font-size:11.5px; color:{INK_DIM}; }}
 
 .sc-hero {{ margin-bottom:22px; max-width:780px; }}
-.sc-hero-title {{ font-family:'Fraunces',serif; font-size:clamp(26px,3.6vw,40px); font-weight:700; margin:0 0 8px; line-height:1.15; color:{INK}; }}
+.sc-hero-title {{ font-family:var(--font); font-size:clamp(26px,3.6vw,40px); font-weight:700; margin:0 0 8px; line-height:1.15; color:{INK}; }}
 .sc-hero-sub {{ font-size:14.5px; color:{INK_DIM}; margin:0; line-height:1.6; }}
 
 .sc-kpi-row {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin-bottom:20px; }}
 .sc-kpi {{ background:{SURFACE}; border:1px solid {LINE}; border-radius:16px; padding:18px 18px 16px;
   transition: transform .2s ease, box-shadow .2s ease; }}
 .sc-kpi:hover {{ transform:translateY(-3px); box-shadow:0 12px 26px rgba(28,29,34,.08); }}
-.sc-kpi-value {{ font-family:'Fraunces',serif; font-size:30px; font-weight:700; color:{INK}; }}
+.sc-kpi-value {{ font-family:var(--font); font-size:30px; font-weight:700; color:{INK}; font-variant-numeric:tabular-nums; }}
 .sc-kpi-label {{ font-size:12.5px; font-weight:600; margin-top:3px; color:{INK}; }}
 .sc-kpi-caption {{ font-size:11px; color:{INK_DIM}; margin-top:2px; }}
 
 .sc-insight {{ border-radius:18px; padding:22px 26px; margin-bottom:6px; color:#fff;
   background:linear-gradient(120deg,{CORAL},#ff8a4c,{VIOLET}); background-size:220% 220%;
   animation: sc-gradient 10s ease infinite; }}
-.sc-insight-eyebrow {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; opacity:.85; }}
-.sc-insight-headline {{ font-family:'Fraunces',serif; font-size:clamp(19px,2.4vw,25px); font-weight:700; margin:6px 0 6px; }}
+.sc-insight-eyebrow {{ font-family:var(--font); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; opacity:.85; }}
+.sc-insight-headline {{ font-family:var(--font); font-size:clamp(19px,2.4vw,25px); font-weight:700; margin:6px 0 6px; }}
 .sc-insight-sub {{ font-size:13px; opacity:.95; max-width:640px; line-height:1.55; }}
 
 .sc-legend {{ display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:14px; }}
-.sc-legend-item {{ display:flex; align-items:center; gap:6px; font-size:12px; color:{INK}; font-family:'Public Sans',sans-serif; }}
+.sc-legend-item {{ display:flex; align-items:center; gap:6px; font-size:12px; color:{INK}; font-family:var(--font); }}
 .sc-dot {{ width:10px; height:10px; border-radius:50%; flex:none; }}
 
 /* ---------- Mindmap panel ---------- */
@@ -577,7 +592,7 @@ div[class*="st-key-sc_mindmap_frame"] iframe {{ display:block; }}
 
 /* ---------- Script catalog card grid ---------- */
 .sc-card-toolbar {{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:14px; }}
-.sc-card-count {{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:{INK_DIM}; }}
+.sc-card-count {{ font-family:var(--font); font-size:11.5px; color:{INK_DIM}; }}
 
 div[class*="st-key-sc_card_grid"] {{
   display:grid !important;
@@ -609,11 +624,11 @@ div[class*="st-key-sc_card_"]:not([class*="st-key-sc_card_grid"]) .stButton butt
 .sc-card-body {{ padding:14px 16px 4px; }}
 .sc-card-top {{ display:flex; align-items:center; gap:7px; margin-bottom:8px; }}
 .sc-card-top .material-symbols-outlined {{ font-size:17px; }}
-.sc-card-skill {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:500; letter-spacing:.04em; text-transform:uppercase; }}
-.sc-card-title {{ font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:{INK}; line-height:1.25; }}
-.sc-card-path {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{INK_DIM}; margin:2px 0 10px; word-break:break-all; }}
+.sc-card-skill {{ font-family:var(--font); font-size:10.5px; font-weight:500; letter-spacing:.04em; text-transform:uppercase; }}
+.sc-card-title {{ font-family:var(--font); font-weight:600; font-size:16px; color:{INK}; line-height:1.25; }}
+.sc-card-path {{ font-family:var(--code); font-size:10.5px; color:{INK_DIM}; margin:2px 0 10px; word-break:break-all; }}
 .sc-card-badges {{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }}
-.sc-badge {{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-family:'IBM Plex Mono',monospace;
+.sc-badge {{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-family:var(--font);
   color:{INK_DIM}; background:{BG}; border:1px solid {LINE}; border-radius:999px; padding:2px 8px; }}
 .sc-badge .material-symbols-outlined {{ font-size:12.5px; }}
 .sc-card-purpose {{ font-size:12px; color:{INK}; line-height:1.5; min-height:34px;
@@ -625,7 +640,7 @@ div[class*="st-key-sc_card_"]:not([class*="st-key-sc_card_grid"]) .stButton butt
 
 /* ---------- Activity feed / timeline ---------- */
 .sc-feed {{ background:{SURFACE}; border:1px solid {LINE}; border-radius:16px; padding:6px 4px; }}
-.sc-feed-group-label {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+.sc-feed-group-label {{ font-family:var(--font); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
   color:{INK_DIM}; padding:10px 16px 4px; }}
 .sc-feed-item {{ display:flex; align-items:flex-start; gap:12px; padding:9px 16px; position:relative; }}
 .sc-feed-item::before {{ content:''; position:absolute; left:26px; top:26px; bottom:-3px; width:1.5px; background:{LINE}; }}
@@ -636,25 +651,25 @@ div[class*="st-key-sc_card_"]:not([class*="st-key-sc_card_grid"]) .stButton butt
 .sc-feed-main {{ flex:1; min-width:0; }}
 .sc-feed-line1 {{ display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; }}
 .sc-feed-script {{ font-weight:600; color:{INK}; font-size:13px; }}
-.sc-feed-action {{ font-size:11.5px; color:{INK_DIM}; font-family:'IBM Plex Mono',monospace; }}
-.sc-feed-ts {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{INK_DIM}; margin-left:auto; white-space:nowrap; }}
-.sc-feed-err {{ color:{RED}; font-family:'IBM Plex Mono',monospace; font-size:11px; margin-top:3px; }}
+.sc-feed-action {{ font-size:11.5px; color:{INK_DIM}; font-family:var(--font); }}
+.sc-feed-ts {{ font-family:var(--font); font-size:10.5px; color:{INK_DIM}; margin-left:auto; white-space:nowrap; }}
+.sc-feed-err {{ color:{RED}; font-family:var(--code); font-size:11px; margin-top:3px; }}
 
 /* ---------- Daily digest report card ---------- */
 .sc-digest-meta-row {{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }}
-.sc-digest-tag {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:{INK_DIM}; background:{BG};
+.sc-digest-tag {{ font-family:var(--font); font-size:10.5px; color:{INK_DIM}; background:{BG};
   border:1px solid {LINE}; border-radius:999px; padding:3px 10px; }}
 .sc-digest-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:18px; }}
 .sc-digest-tile {{ background:{SURFACE}; border:1px solid {LINE}; border-radius:14px; padding:14px 16px; }}
 .sc-digest-tile-label {{ font-size:11.5px; color:{INK_DIM}; font-weight:600; margin-bottom:4px; }}
 .sc-digest-tile-value-row {{ display:flex; align-items:baseline; gap:8px; }}
-.sc-digest-tile-value {{ font-family:'Fraunces',serif; font-size:24px; font-weight:700; color:{INK}; }}
-.sc-digest-delta {{ font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; }}
+.sc-digest-tile-value {{ font-family:var(--font); font-size:24px; font-weight:700; color:{INK}; font-variant-numeric:tabular-nums; }}
+.sc-digest-delta {{ font-family:var(--font); font-size:11px; font-weight:600; }}
 div[class*="st-key-sc_narrative_card"] {{
   background:linear-gradient(160deg,{SURFACE},{BG}); border:1px solid {LINE}; border-radius:18px;
   padding:20px 24px 6px;
 }}
-.sc-narrative-label {{ display:flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:11px;
+.sc-narrative-label {{ display:flex; align-items:center; gap:7px; font-family:var(--font); font-size:11px;
   letter-spacing:.08em; text-transform:uppercase; color:{VIOLET}; margin-bottom:10px; }}
 .sc-narrative-label .material-symbols-outlined {{ font-size:16px; }}
 div[class*="st-key-sc_narrative_card"] [data-testid="stMarkdownContainer"] {{
@@ -914,8 +929,8 @@ def render_digest_card(digest: dict) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Bottom-of-page JS: scroll-reveal (IntersectionObserver, same technique as
-# erp/html_report.py) + the mindmap<->card<->editor bridge described above.
+# Bottom-of-page JS: scroll-reveal (IntersectionObserver) + the
+# mindmap<->card<->editor bridge described above.
 # Runs at the end of every rerun; the message listener installs itself only
 # once (window.__scBridgeInstalled guard) to avoid stacking duplicate
 # listeners across reruns, while the reveal observer is recreated fresh each

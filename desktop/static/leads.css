@@ -1,0 +1,271 @@
+/* ERP Desk - Leads page (funnel + SLA explorer for analysts). Same design language as report.css / today.css / flow.css:
+   tokens come from shell.css, the filter pills / segmented buttons / KPI tiles are the ones report.css defines.
+   Responsive through a CONTAINER query on .ld (the window can be narrow while the viewport is not). */
+.ld { container-type: inline-size; container-name: ld; max-width: 1320px; margin: 0 auto; padding: 28px 32px 60px; }
+
+/* entrance: staggered, once (leads.js adds .play the first time the page is shown). Without .play nothing is hidden by default motion. */
+.ld:not(.play) .ld-rise { opacity: 0; }
+.ld.play .ld-rise { animation: ld-rise .7s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes ld-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+/* ------------------------------------------------------------------ header */
+.ld-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+.ld-head-text { min-width: 0; }
+.ld-title { font-family: var(--font); font-weight: 700; font-size: clamp(25px, 3vw, 36px); line-height: 1.1; margin: 6px 0 8px; text-wrap: balance; }
+.ld-sub { margin: 0; font-size: 14px; color: var(--ink-dim); line-height: 1.5; max-width: 720px; }
+.ld-sub b { color: var(--ink); font-weight: 600; }
+
+/* stale numbers (a re-read failed, the old ones are still on screen): say so next to the title and dim what is shown (L-093) */
+.ld-stale { margin: 8px 0 0; padding: 6px 12px; border-radius: 10px; background: rgba(224, 57, 62, .09); color: #8f1f24; font-size: 12.5px; line-height: 1.45; max-width: 720px; }
+.ld-stale[hidden] { display: none; }
+.ld.stale .ld-kpis, .ld.stale .ld-grid { opacity: .55; filter: saturate(.6); transition: opacity .3s, filter .3s; }
+
+/* the honesty line (the same idea as the Today hero's caveat, on a light page) */
+.ld-caveat { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 12px; padding: 11px 14px 11px 12px; border-radius: 14px;
+  border: 1px solid rgba(242, 183, 5, .4); border-left: 4px solid var(--amber); background: rgba(242, 183, 5, .12); color: #4a3d05; font-size: 13.5px; line-height: 1.5; }
+.ld-caveat[hidden], .ld-warn[hidden] { display: none; }
+.ld-caveat .cv-ico { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; background: var(--amber); position: relative; }
+.ld-caveat .cv-ico svg { position: absolute; inset: 0; width: 100%; height: 100%; padding: 3px; stroke: var(--ink); stroke-width: 3; }
+.ld-caveat b { color: #6b5200; }
+.ld-warn { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; background: #efece5; color: #4b4d55; font-size: 13px; line-height: 1.5; }
+.ld-warn div + div { margin-top: 4px; }
+
+/* ------------------------------------------------------------------ filter bar */
+.ld-filters { position: sticky; top: 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 12px 14px; margin: 0 -6px 14px; border-radius: 18px;
+  background: rgba(245, 243, 239, .9); backdrop-filter: blur(10px); border: 1px solid transparent; transition: border-color .3s, box-shadow .3s, background .3s; }
+/* The REP/SOURCE groups never wrap PILL BY PILL regardless of how many reps or sources exist (each is one row that
+   either scrolls internally, below ~1100px of content width, or claims a full row of its own above it - see
+   .fg-multi/.fg-scroll below), so the sticky bar's height stays predictable instead of growing with the team's
+   size; only a genuinely short window (a laptop at 640px tall or less) gives the sticky bar up for the extra room. */
+@media (max-height: 640px) { .ld-filters { position: static; margin: 0 0 14px; } }
+.ld-filters.stuck { border-color: var(--line); box-shadow: 0 10px 30px rgba(28, 29, 34, .07); background: rgba(255, 255, 255, .92); }
+.ld-filters .fgroup { row-gap: 6px; }
+.ld-filters .seg { flex-wrap: wrap; max-width: 100%; }
+/* REP / SOURCE: an unbounded list (a busy team can have a dozen reps and as many sources) becomes one horizontally-
+   scrolling row instead of wrapping the whole bar to two or three rows (the label stays put, only the pill strip
+   scrolls) - a compact/overflow treatment that keeps every pill one scroll + one click away at any window width.
+   `min-width: 0` on both the flex item and the scroller is what lets a flex-wrap:wrap parent actually shrink this
+   item instead of always pushing it whole onto the next line.
+   Audit finding (2026-09-24): sharing a row with RANGE + two date fields left the strip only ~200px wide even at
+   1920/1440, hiding all but 1-2 of a dozen pills with nothing but a scrollbar nub to say more exists - satisfying
+   the letter of "reachable" while reading as broken. Above ~1100px of content width there is no real space
+   pressure, so each strip claims a FULL row of its own there instead of staying compact for no reason; below that
+   (a laptop-width window, or the 820/390 cases the requirement names) it keeps the original compact scrolling
+   strip, which is the width class that actually needs it. An edge fade-mask (JS-driven, see leads.js updateFade(),
+   whose fade/breakpoint/scroll math is the pure, Node-testable static/leads_filterbar.js) makes a still-clipped
+   strip read as "more this way" instead of a hard, silent cut. */
+.ld-filters .fgroup.fg-multi { flex-wrap: nowrap; flex: 1 1 220px; min-width: 90px; max-width: 100%; position: relative; }
+.ld-filters .fgroup.fg-multi .fgroup-label { flex: none; }
+@container ld (min-width: 1100px) {  /* mirrored as FULL_ROW_MIN_WIDTH in static/leads_filterbar.js - change both */
+  .ld-filters .fgroup.fg-multi { flex-basis: 100%; }
+}
+.ld-filters .fg-scroll { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; overflow-x: auto; overflow-y: hidden;
+  padding: 3px 2px 7px; scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+  -webkit-mask-image: none; mask-image: none; }
+.ld-filters .fg-scroll::-webkit-scrollbar { height: 6px; }
+.ld-filters .fg-scroll::-webkit-scrollbar-track { background: transparent; }
+.ld-filters .fg-scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+.ld-filters .fg-scroll::-webkit-scrollbar-thumb:hover { background: var(--ink-dim); }
+.ld-filters .fg-scroll .pill { flex: 0 0 auto; }
+/* fade mask at whichever edge still hides pills - toggled by leads.js updateFade() from real scrollLeft/scrollWidth,
+   never shown when there is nothing more in that direction. A mask (not a painted gradient) fades the pills
+   themselves, so it needs no color to match the bar's own translucent/blurred background. */
+.ld-filters .fg-multi.fade-start .fg-scroll { -webkit-mask-image: linear-gradient(to right, transparent 0, black 22px); mask-image: linear-gradient(to right, transparent 0, black 22px); }
+.ld-filters .fg-multi.fade-end .fg-scroll { -webkit-mask-image: linear-gradient(to left, transparent 0, black 22px); mask-image: linear-gradient(to left, transparent 0, black 22px); }
+.ld-filters .fg-multi.fade-start.fade-end .fg-scroll {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 22px, black calc(100% - 22px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 22px, black calc(100% - 22px), transparent 100%);
+}
+.ld-date { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font); font-size: 10.5px; color: var(--ink-dim); }
+.ld-date input, .ld-select select { height: 32px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font-family: var(--font); font-size: 12px; }
+.ld-date input:focus-visible, .ld-select select:focus-visible, .ld-filters .pill:focus-visible, .ld-filters .seg button:focus-visible,
+.ld-tbl th button:focus-visible, .ld-pager button:focus-visible, .ld-row-btn:focus-visible, .ld-stack button:focus-visible, .ld-dr-x:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ld-select { display: inline-flex; align-items: center; }
+.ld-filters .pill .n { font-family: var(--font); font-size: 10.5px; opacity: .6; }
+.ld-filters .pill.on .n { opacity: .8; }
+.ld-filters .fcount { margin-left: auto; }
+.ld-filters .chips { margin-top: -2px; }
+
+/* ------------------------------------------------------------------ KPI tiles (report.css .kpis/.kpi, tuned for this page) */
+.ld-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 14px; display: grid; gap: 12px; }
+.ld-kpis .kpi { animation: none; padding: 15px 16px 13px; cursor: default; }
+.ld-kpis .kpi-value { font-size: 38px; }
+.ld-kpis .kpi-value.txt { font-size: 30px; padding-top: 5px; }
+.ld-kpis .kpi-value.dash { color: #b9b5aa; }
+.ld-kpis .kpi-value small { font-family: var(--font); font-size: 13px; font-weight: 400; color: var(--ink-dim); margin-left: 2px; }
+.ld-kpis .kpi-cap { font-family: var(--font); font-size: 12.5px; line-height: 1.35; color: #4b4d55; margin-top: 4px; min-height: 34px; }
+.ld-kpis .kpi.na .kpi-cap { color: var(--ink-dim); }
+.ld-kpis .kpi.flash::before { border-radius: 18px; }
+
+/* ------------------------------------------------------------------ panels */
+.ld-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.ld-grid > .span-5 { grid-column: span 5; } .ld-grid > .span-6 { grid-column: span 6; } .ld-grid > .span-7 { grid-column: span 7; } .ld-grid > .span-12 { grid-column: span 12; }
+.ld-panel { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 15px 18px 14px; min-width: 0; transition: box-shadow .25s, border-color .3s; }
+.ld-panel:hover { box-shadow: 0 14px 32px rgba(28, 29, 34, .07); }
+.ld-panel > header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.ld-panel h3 { margin: 0; font-family: var(--font); font-size: 17px; font-weight: 600; }
+.ld-panel .hint { text-align: right; }
+.ld-panel.busy { border-color: rgba(52, 82, 235, .4); }
+.ld-plot { width: 100%; min-height: 230px; }
+.ld-empty { display: grid; place-items: center; text-align: center; min-height: 170px; padding: 14px 10px; color: var(--ink-dim); font-size: 13.5px; line-height: 1.6; }
+.ld-empty b { display: block; font-family: var(--font); font-size: 18px; color: var(--ink); margin: 6px 0 3px; font-weight: 600; }
+.ld-empty span { display: block; max-width: 460px; }
+.ld-empty code, .ld-note code { font-family: var(--code); font-size: 11.5px; background: #efece5; padding: 1px 6px; border-radius: 6px; color: #33353d; }
+.ld-na { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: #f5f2ec; border: 1px dashed #d5cfc2; color: #4b4d55; font-size: 13.5px; line-height: 1.5; }
+.ld-na .tag { font-family: var(--font); font-size: 10px; letter-spacing: .1em; padding: 3px 8px; border-radius: 999px; background: #e7e2d8; color: var(--ink-dim); flex: none; margin-top: 1px; }
+.ld-note { margin: 10px 0 0; font-size: 12.5px; line-height: 1.55; color: #4b4d55; }
+.ld-note b { color: var(--ink); }
+
+/* funnel */
+.ld-fn-row { --fc: var(--blue); }
+.ld-fn-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; gap: 10px; }
+.ld-fn-label { font-size: 13px; font-weight: 600; }
+.ld-fn-nums { font-family: var(--font); font-size: 11.5px; color: var(--ink-dim); white-space: nowrap; }
+.ld-fn-nums b { font-family: var(--font); font-size: 19px; color: var(--ink); font-weight: 700; margin-right: 7px; }
+.ld-fn-track { height: 26px; border-radius: 9px; background: color-mix(in srgb, var(--fc) 8%, #f5f2ec); overflow: hidden; }
+.ld-fn-track i { display: block; height: 100%; min-width: 3px; border-radius: 9px; background: linear-gradient(90deg, var(--fc), color-mix(in srgb, var(--fc) 68%, #fff)); transition: width .9s var(--ease); }
+.ld-fn-step { display: flex; align-items: center; gap: 8px; margin: 3px 0 5px 6px; font-family: var(--font); font-size: 11px; color: var(--ink-dim); }
+.ld-fn-step svg { width: 13px; height: 13px; flex: none; }
+.ld-fn-step .lost { color: #b32a2f; font-weight: 500; }
+.ld-fn-step .keep { color: #0b8a63; }
+.ld-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.ld-chip { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 2px 6px; font-family: var(--font); font-size: 10.5px; padding: 3px 10px; border-radius: 14px; background: #efece5; color: #4b4d55; }
+.ld-chip b { font-weight: 500; color: var(--ink); }
+.ld-chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--blue)); }
+
+/* SLA outcome */
+.ld-tri { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.ld-tri-c { --c: var(--blue); padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--c) 7%, #fff); border: 1px solid color-mix(in srgb, var(--c) 22%, transparent); min-width: 0; }
+.ld-tri-c b { display: block; font-family: var(--font); font-size: 30px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.ld-tri-c span { display: block; font-size: 12px; font-weight: 600; color: #33353d; margin-top: 2px; }
+.ld-tri-c small { display: block; font-family: var(--font); font-size: 10px; color: var(--ink-dim); margin-top: 2px; line-height: 1.35; }
+.ld-stack { display: flex; height: 26px; gap: 3px; border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: #f5f2ec; }
+.ld-stack button { border: 0; padding: 0; min-width: 6px; cursor: pointer; background: var(--c); transition: opacity .25s, filter .2s; }
+.ld-stack button:hover { filter: brightness(1.08); }
+.ld-stack.filtered button:not(.on) { opacity: .28; }
+.ld-stack .none { flex: 1; display: grid; place-items: center; font-family: var(--font); font-size: 10.5px; color: var(--ink-dim); }
+.ld-legend { list-style: none; margin: 0; padding: 0; }
+.ld-legend li { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto auto; align-items: center; gap: 8px; padding: 5px 4px; border-radius: 8px; cursor: pointer; font-size: 12.5px; }
+.ld-legend li:hover { background: #f7f5f0; }
+.ld-legend li.on { background: rgba(52, 82, 235, .08); }
+.ld-legend li:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+.ld-legend .sw { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.ld-legend .n { font-family: var(--font); font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+.ld-legend .p { font-family: var(--font); font-size: 10.5px; color: var(--ink-dim); min-width: 62px; text-align: right; }
+
+/* time to first reply summary */
+.ld-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ld-stat { padding: 7px 12px; border-radius: 12px; background: #f7f5f0; min-width: 0; }
+.ld-stat b { display: block; font-family: var(--font); font-size: 19px; font-weight: 700; line-height: 1.15; }
+.ld-stat span { font-family: var(--font); font-size: 10px; letter-spacing: .04em; color: var(--ink-dim); }
+.ld-stat.dim b { color: #9a968b; font-size: 14px; font-family: var(--font); font-weight: 600; padding: 3px 0; }
+
+/* breakdown tables (rep / source) */
+.ld-bt { display: flex; flex-direction: column; }
+.ld-bt-head, .ld-bt-row { display: grid; grid-template-columns: minmax(100px, 1.35fr) 42px minmax(80px, 1.3fr) 80px 76px; align-items: center; gap: 10px; }
+.ld-bt-head { padding: 0 8px 6px; font-family: var(--font); font-size: 10px; letter-spacing: .08em; color: var(--ink-dim); border-bottom: 1px solid var(--grid); }
+.ld-bt-row { width: 100%; padding: 8px; border: 0; border-bottom: 1px solid var(--grid); background: none; text-align: left; cursor: pointer; border-radius: 10px; font: inherit; color: inherit; transition: background .2s; }
+.ld-bt-row:last-of-type { border-bottom: 0; }
+.ld-bt-row:hover { background: #f7f5f0; }
+.ld-bt-row.on { background: rgba(52, 82, 235, .08); }
+.ld-bt-row .nm { font-size: 13px; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; min-width: 0; }   /* Montserrat is wide: a long source / rep name wraps instead of being cut off */
+.ld-bt-row .num { font-family: var(--font); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+.ld-bt-row .rt, .ld-bt-row .md { font-family: var(--font); font-size: 11.5px; color: #33353d; }
+.ld-bt-row .rt small, .ld-bt-row .md small { display: block; color: var(--ink-dim); font-size: 10px; }
+.ld-mini { display: flex; height: 12px; gap: 2px; border-radius: 6px; overflow: hidden; background: #f0ede6; }
+.ld-mini i { display: block; min-width: 4px; background: var(--c); }
+.ld-bt-more { margin: 8px 8px 0; font-family: var(--font); font-size: 10.5px; color: var(--ink-dim); }
+
+/* detail table */
+.ld-tbl-wrap { overflow-x: auto; margin: 0 -6px; padding: 0 6px; }
+.ld-tbl { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+.ld-tbl th { text-align: left; padding: 0 10px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; font-weight: 400; }
+.ld-tbl th button { border: 0; background: none; padding: 2px 0; cursor: pointer; font-family: var(--font); font-size: 10px; letter-spacing: .1em; color: var(--ink-dim); text-transform: uppercase; display: inline-flex; align-items: center; gap: 5px; }
+.ld-tbl th button:hover { color: var(--ink); }
+.ld-tbl th[aria-sort="ascending"] button, .ld-tbl th[aria-sort="descending"] button { color: var(--blue); }
+.ld-tbl th button .ar { font-size: 9px; opacity: .35; }
+.ld-tbl th[aria-sort] button .ar { opacity: 1; }
+.ld-tbl th.nosort { font-family: var(--font); font-size: 10px; letter-spacing: .1em; color: var(--ink-dim); text-transform: uppercase; }
+.ld-tbl td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+.ld-tbl tbody tr:hover td { background: #fbfaf7; }
+.ld-tbl tbody tr:last-child td { border-bottom: 0; }
+.ld-tbl .id { font-family: var(--font); font-size: 11.5px; color: var(--ink-dim); }
+.ld-tbl .when { font-family: var(--font); font-size: 11.5px; white-space: nowrap; }
+.ld-tbl .who b { display: block; font-weight: 600; }
+.ld-tbl .who span { display: block; font-size: 12px; color: var(--ink-dim); max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ld-tbl .sub { display: block; font-size: 11.5px; color: var(--ink-dim); margin-top: 2px; }
+.ld-tbl .hrs { font-family: var(--font); font-size: 12px; white-space: nowrap; }
+.ld-row-btn { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); cursor: pointer; text-align: left; }
+.ld-row-btn:hover { text-decoration: underline; }
+.ld-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font); font-size: 10.5px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: color-mix(in srgb, var(--c) 13%, #fff); color: color-mix(in srgb, var(--c) 62%, #000); }
+.ld-badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.ld-dots { display: inline-flex; gap: 4px; }
+.ld-dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid #cfc9bb; }
+.ld-dots i.on { background: var(--green); border-color: var(--green); }
+.ld-pager { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-family: var(--font); font-size: 11.5px; color: var(--ink-dim); }
+.ld-pager .sp { flex: 1; }
+.ld-pager button { height: 30px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-family: var(--font); font-size: 11.5px; cursor: pointer; color: var(--ink); }
+.ld-pager button:hover:not([disabled]) { border-color: #d5cfc2; box-shadow: 0 4px 12px rgba(28, 29, 34, .07); }
+.ld-pager button[disabled] { opacity: .45; cursor: default; }
+.ld-pager select { height: 30px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-family: var(--font); font-size: 11.5px; padding: 0 6px; color: var(--ink); }
+.ld-pager b { color: var(--ink); font-weight: 500; }
+.ld-sortsel { display: none; align-items: center; gap: 6px; }
+.ld-sortsel button { height: 30px; }
+
+.ld-foot { text-align: center; margin-top: 30px; font-size: 11px; color: var(--ink-dim); }
+
+/* ------------------------------------------------------------------ definitions drawer */
+#view-leads { overflow: hidden; }       /* the closed drawer sits off-screen to the right: clip it so focusing it can never scroll the whole stage sideways */
+.ld-scrim { position: absolute; inset: 0; z-index: 40; background: rgba(28, 29, 34, .32); backdrop-filter: blur(2px); animation: fade-in .25s ease; }
+.ld-scrim[hidden] { display: none; }
+.ld-drawer { position: absolute; z-index: 50; top: 14px; right: 14px; bottom: 14px; width: min(440px, calc(100% - 28px)); display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 30px 80px rgba(28, 29, 34, .3); overflow: hidden;
+  transform: translateX(calc(100% + 30px)); opacity: 0; visibility: hidden; transition: transform .5s var(--ease), opacity .3s, visibility 0s linear .5s; outline: none; }
+.ld-drawer.open { transform: none; opacity: 1; visibility: visible; transition-delay: 0s; }
+.ld-dr-head { flex: none; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 18px 14px; border-bottom: 1px solid var(--grid); }
+.ld-dr-head h2 { margin: 4px 0 0; font-family: var(--font); font-size: 21px; font-weight: 700; line-height: 1.15; }
+.ld-dr-x { flex: none; width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; display: grid; place-items: center; color: var(--ink); }
+.ld-dr-x:hover { background: #f5f2ec; }
+.ld-dr-x svg { width: 16px; height: 16px; }
+.ld-dr-body { flex: 1; overflow-y: auto; padding: 6px 18px 20px; }
+.ld-dr-body dl { margin: 0; }
+.ld-dr-body dt { margin: 16px 0 3px; font-family: var(--font); font-size: 15.5px; font-weight: 600; }
+.ld-dr-body dd { white-space: pre-line; margin: 0; font-size: 13px; line-height: 1.6; color: #3a3c44; }
+.ld-dr-foot { margin: 20px 0 0; font-family: var(--font); font-size: 10.5px; color: var(--ink-dim); line-height: 1.5; }
+
+/* ------------------------------------------------------------------ responsive (container query) */
+@container ld (max-width: 1080px) {
+  .ld-grid > .span-5, .ld-grid > .span-6, .ld-grid > .span-7 { grid-column: span 12; }
+  .ld-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container ld (max-width: 700px) {
+  .ld-sortsel { display: inline-flex; }
+  .ld-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ld-filters { position: static; margin: 0 0 14px; }
+  .ld-filters .fcount { margin-left: 0; }
+  .ld-tri { grid-template-columns: 1fr; }
+  .ld-tri-c { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .ld-tri-c b { font-size: 26px; }
+  .ld-bt-head { display: none; }
+  .ld-bt-row { grid-template-columns: minmax(0, 1fr) auto; row-gap: 6px; }
+  .ld-bt-row .ld-mini { grid-column: 1 / -1; grid-row: 2; }
+  .ld-bt-row .rt { grid-column: 1; } .ld-bt-row .md { grid-column: 2; text-align: right; }
+  /* the wide table becomes one card per lead */
+  .ld-tbl { min-width: 0; }
+  .ld-tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .ld-tbl, .ld-tbl tbody, .ld-tbl tr, .ld-tbl td { display: block; width: 100%; }
+  .ld-tbl tr { padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  .ld-tbl tbody tr:last-child { border-bottom: 0; }
+  .ld-tbl td { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border: 0; text-align: right; }
+  .ld-tbl td::before { content: attr(data-label); flex: none; font-family: var(--font); font-size: 10px; letter-spacing: .08em; color: var(--ink-dim); text-transform: uppercase; padding-top: 2px; }
+  .ld-tbl .who span { max-width: 190px; }
+  .ld-tbl td.who > div { text-align: right; }
+  .ld-tbl-wrap { overflow-x: visible; }
+}
+@container ld (max-width: 460px) { .ld-kpis { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .ld { padding: 20px 16px 50px; } .ld-drawer { top: 8px; right: 8px; bottom: 8px; left: 8px; width: auto; } }
+@media (prefers-reduced-motion: reduce) {
+  .ld .ld-rise { opacity: 1 !important; animation: none !important; }
+  .ld-fn-track i { transition: none; }
+}

@@ -28,6 +28,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from erp import ai_client, emailer
 from erp.db import SessionLocal
+from erp.typography import CODE_STACK, EMAIL_STACK
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HISTORY_FILE = PROJECT_ROOT / "daily_digest_history.json"
@@ -65,7 +66,7 @@ METRIC_LABELS = {
 
 # ---------------------------------------------------------------------------
 # 1) Gather today's metrics from the live DB (same spirit as erp/daily_check.py
-#    and erp/html_report.py - reused/adapted queries, read-only).
+#    - reused/adapted queries, read-only).
 # ---------------------------------------------------------------------------
 def gather_metrics() -> dict:
     with SessionLocal() as session:
@@ -219,8 +220,8 @@ def run_daily_digest(send_email: bool = True) -> dict:
         for k, v in metrics.items()
     )
     body_html = f"""
-    <div style="font-family:sans-serif">
-      <h2 style="font-family:Georgia,serif">Daily Digest - erp_support ({today_str})</h2>
+    <div style="font-family:{EMAIL_STACK}">
+      <h2 style="font-family:{EMAIL_STACK}">Daily Digest - erp_support ({today_str})</h2>
       <table style="border-collapse:collapse">{body_html_rows}</table>
       <pre style="white-space:pre-wrap;font-family:inherit;margin-top:16px">{narrative}</pre>
     </div>
@@ -255,14 +256,14 @@ def send_failure_alert(exc: BaseException) -> bool:
         tb = traceback.format_exc()
         subject = f"[ERP] Daily Digest FAILED - {today_str}"
         body_html = f"""
-        <div style="font-family:sans-serif">
-          <h2 style="font-family:Georgia,serif;color:#e0393e">Daily digest job failed</h2>
+        <div style="font-family:{EMAIL_STACK}">
+          <h2 style="font-family:{EMAIL_STACK};color:#e0393e">Daily digest job failed</h2>
           <p>The scheduled daily digest (<code>erp/daily_digest.py</code>, run via
           <code>run_daily_digest.bat</code> / Windows Task Scheduler) raised an unhandled
           exception and did not complete. No metrics were gathered or, if the failure
           happened later, the digest may be incomplete.</p>
           <p><b>Error:</b> {type(exc).__name__}: {exc}</p>
-          <pre style="white-space:pre-wrap;background:#f5f3ef;padding:10px;border-radius:8px;font-size:12px">{tb}</pre>
+          <pre style="white-space:pre-wrap;background:#f5f3ef;padding:10px;border-radius:8px;font-size:12px;font-family:{CODE_STACK}">{tb}</pre>
           <p>See {LOG_FILE.name} on the host for the full log.</p>
         </div>
         """

@@ -1,0 +1,3 @@
+# Workflow scripts and agent files must stay LF (CRLF is rejected by the Workflow approval dialog)
+.claude/** text eol=lf
+Law.md text eol=lf

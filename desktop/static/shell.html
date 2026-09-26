@@ -9,9 +9,17 @@
 <meta name="erp-refresh-seconds" content="__REFRESH_SECONDS__">
 <link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/static/shell.css">
 <link rel="stylesheet" href="/static/report.css">
+<link rel="stylesheet" href="/static/today.css">
+<link rel="stylesheet" href="/static/health.css">
+<link rel="stylesheet" href="/static/leads.css">
+<link rel="stylesheet" href="/static/sources.css">
+<link rel="stylesheet" href="/static/channels.css">
+<link rel="stylesheet" href="/static/insights.css">
+<link rel="stylesheet" href="/static/placements.css">
 <link rel="stylesheet" href="/static/flow.css">
 <link rel="stylesheet" href="/static/flow3d.css">
 </head>
@@ -43,17 +51,33 @@
 
     <nav class="nav" id="nav">
       <span class="nav-ind" id="navInd" aria-hidden="true"></span>
+      <a class="nav-item" href="#today" data-view="today">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+        <span class="nav-label">Today</span><kbd>Ctrl 1</kbd>
+      </a>
       <a class="nav-item" href="#reporting" data-view="reporting">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
-        <span class="nav-label">Reporting</span><kbd>Ctrl 1</kbd>
+        <span class="nav-label">Reporting</span><kbd>Ctrl 2</kbd>
       </a>
       <a class="nav-item" href="#management" data-view="management">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5l3.2 2.8M17.5 7.5l-3.2 2.8M6.5 16.5l3.2-2.8M17.5 16.5l-3.2-2.8"/></svg>
-        <span class="nav-label">Management</span><kbd>Ctrl 2</kbd>
+        <span class="nav-label">Management</span><kbd>Ctrl 3</kbd>
       </a>
       <a class="nav-item" href="#dataflow" data-view="dataflow">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="19" cy="19" r="2.2"/><path d="M7.2 12H11c2.4 0 2.4-7 6-7M11 12c2.4 0 2.4 7 6 7"/></svg>
-        <span class="nav-label">Data Flow</span><kbd>Ctrl 3</kbd>
+        <span class="nav-label">Data Flow</span><kbd>Ctrl 4</kbd>
+      </a>
+      <a class="nav-item" href="#leads" data-view="leads">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5h17l-6.5 7.6V19l-4 1.8v-8.2z"/></svg>
+        <span class="nav-label">Leads</span><kbd>Ctrl 5</kbd>
+      </a>
+      <a class="nav-item" href="#health" data-view="health">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12.5h4l2.2-5 3.4 10 2.4-5h6"/></svg>
+        <span class="nav-label">Health</span><kbd>Ctrl 6</kbd>
+      </a>
+      <a class="nav-item" href="#channels" data-view="channels">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5 9 11.5l3.6 3.3L20.5 6.5M15 6.5h5.5V12"/></svg>
+        <span class="nav-label">Channels</span><kbd>Ctrl 7</kbd>
       </a>
     </nav>
 
@@ -73,6 +97,270 @@
   </aside>
 
   <main class="stage">
+    <!-- ============ Today (landing page) ============ -->
+    <section class="view" id="view-today" aria-label="Today">
+      <div class="scroller" id="todayScroll">
+        <div class="today" id="today">
+
+          <header class="t-head t-rise" style="--i:0">
+            <div>
+              <div class="eyebrow">TODAY &middot; AT A GLANCE</div>
+              <h1 class="t-day" id="tDay">Today</h1>
+            </div>
+            <div class="live-controls">
+              <div class="live-pill" id="tPill" data-state="connecting" title="Live connection to the Today feed">
+                <span class="live-dot"></span><b id="tLive">CONNECTING</b><span class="live-ago" id="tAgo"></span>
+              </div>
+              <button class="btn" id="tRefresh" title="Re-read everything now (R)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh
+              </button>
+            </div>
+          </header>
+
+          <section class="t-hero t-rise loading" id="tHero" data-level="loading" style="--i:1" aria-live="polite" aria-labelledby="tSentence">
+            <span class="t-orb" id="tOrb" aria-hidden="true"></span>
+            <div class="t-hero-body">
+              <div class="t-hero-eyebrow" id="tEyebrow">STATUS &middot; CHECKING</div>
+              <h2 class="t-hero-sentence" id="tSentence">Reading today&rsquo;s numbers&hellip;</h2>
+              <div class="t-since" id="tSince" role="group" aria-label="What changed since yesterday" hidden>
+                <span class="t-since-label" id="tSinceLabel">Since yesterday</span>
+                <span class="t-since-parts" id="tSinceParts"></span>
+                <span class="t-since-note" id="tSinceNote" hidden></span>
+              </div>
+              <p class="t-hero-sub" id="tSub">Asking the database, the logs and Task Scheduler.</p>
+              <p class="t-hero-caveat" id="tCaveat" role="note" hidden><span class="cv-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5.5M12 16.6v.2"/></svg></span><span class="cv-body"><span class="cv-label" id="tCaveatLabel"></span><span class="cv-text" id="tCaveatText"></span></span></p>
+            </div>
+            <div class="t-hero-actions">
+              <button type="button" class="btn primary" data-go="reporting">Open Reporting<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              <button type="button" class="btn" data-go="dataflow">See Data Flow<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </div>
+          </section>
+
+          <section class="t-kpis" id="tKpis" aria-label="Key numbers"></section>
+
+          <section class="t-panel t-rise" id="tAttention" style="--i:4" aria-label="Needs a human">
+            <header><h3>Needs a human</h3><span class="t-count" id="tAttnCount"></span><span class="hint" id="tAttnHint">worst first</span></header>
+            <div id="tAttnBody"></div>
+          </section>
+
+          <section class="t-panel t-rise" id="tHealth" style="--i:5" aria-label="System health">
+            <header><h3>System health</h3><span class="hint">green = working &middot; amber = check &middot; grey = not set up &middot; red = down</span></header>
+            <div class="t-health-strip" id="tHealthStrip"></div>
+          </section>
+
+          <details class="t-rules t-rise" style="--i:6" id="tRules">
+            <summary>How this is decided</summary>
+            <ul id="tRulesList"></ul>
+          </details>
+          <div class="t-foot meta" id="tFoot">erp_support &middot; PostgreSQL &middot; the same data as Reporting, read fresh</div>
+        </div>
+      </div>
+
+      <!-- detail drawer: opened by a KPI tile, a "Needs a human" row or a "since yesterday" chip.
+           Its content travels in the same GET /api/today payload, so opening it fetches nothing. -->
+      <div class="t-scrim" id="tScrim" hidden></div>
+      <aside class="t-drawer" id="tDrawer" role="dialog" aria-modal="true" aria-labelledby="tDrTitle" aria-hidden="true" tabindex="-1">
+        <header class="t-dr-head">
+          <div class="t-dr-heading">
+            <button type="button" class="linkbtn t-dr-back" id="tDrBack" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg><span id="tDrBackText">Back to the list</span>
+            </button>
+            <div class="t-dr-eyebrow" id="tDrEyebrow"></div>
+            <h2 id="tDrTitle">Details</h2>
+            <p class="t-dr-order" id="tDrOrder"></p>
+          </div>
+          <button type="button" class="t-dr-x" id="tDrClose" title="Close (Esc)" aria-label="Close this panel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <div class="t-dr-body" id="tDrBody"></div>
+        <footer class="t-dr-foot" id="tDrFoot"></footer>
+      </aside>
+    </section>
+
+    <!-- ============ Health (is the system working, and what do I do about it) ============
+         Read-only by construction: this view never calls a state-changing endpoint. Its JSON is GET /api/health
+         (desktop/health_data.py), which composes the Today health cells and the Data Flow snapshot - no second probe. -->
+    <section class="view" id="view-health" aria-label="Health">
+      <div class="scroller" id="healthScroll">
+        <div class="hx" id="hx">
+
+          <header class="hx-head hx-rise" style="--i:0">
+            <div>
+              <div class="eyebrow">HEALTH &middot; IS THE SYSTEM WORKING</div>
+              <h1 class="hx-title">Everything this system depends on</h1>
+            </div>
+            <div class="live-controls">
+              <div class="live-pill" id="hxPill" data-state="connecting" title="Live connection to the Health feed">
+                <span class="live-dot"></span><b id="hxLive">CONNECTING</b><span class="live-ago" id="hxAgo"></span>
+              </div>
+              <button class="btn" id="hxRefresh" title="Re-read every check now (R)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh
+              </button>
+            </div>
+          </header>
+
+          <section class="hx-hero hx-rise loading" id="hxHero" data-level="loading" style="--i:1" aria-live="polite" aria-labelledby="hxSentence">
+            <span class="hx-orb" id="hxOrb" aria-hidden="true"></span>
+            <div class="hx-hero-body">
+              <div class="hx-eyebrow" id="hxEyebrow">SYSTEM &middot; CHECKING</div>
+              <h2 class="hx-sentence" id="hxSentence">Reading every check&hellip;</h2>
+              <p class="hx-sub" id="hxSub">Asking the Data Flow feed, the logs and Windows Task Scheduler.</p>
+              <p class="hx-never" id="hxNeverBox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5.5M12 16.6v.2"/><circle cx="12" cy="12" r="9"/></svg><span id="hxNever"></span></p>
+            </div>
+            <div class="hx-hero-aside">
+              <div class="hx-today" id="hxToday" data-level="unknown">
+                <span class="k">TODAY SAYS (THE WORK)</span><span class="v" id="hxTodayText">not read yet</span>
+              </div>
+              <button type="button" class="btn" data-go="today">Open Today<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              <button type="button" class="btn" data-go="dataflow">See Data Flow<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </div>
+          </section>
+
+          <section class="hx-signals hx-rise" id="hxSignals" style="--i:2" aria-label="Every check at a glance"></section>
+
+          <section class="hx-panel hx-numbers hx-rise" id="hxNumbers" style="--i:3" data-complete="true" aria-label="What this means for the numbers">
+            <header><h3>What this means for the numbers</h3><span class="hint">the same check the Today page uses for its honesty line</span></header>
+            <div id="hxNumBody"></div>
+          </section>
+
+          <div id="hxGroups"></div>
+
+          <section class="hx-panel hx-rise" id="hxConfig" style="--i:12" aria-label="Configuration">
+            <header><h3>Configuration</h3><span class="hint">what is connected, what runs in mock mode, what is not set up</span></header>
+            <div id="hxConfigBody"></div>
+          </section>
+
+          <details class="hx-rules hx-rise" style="--i:13" id="hxRules">
+            <summary>How this is decided</summary>
+            <ul id="hxRulesList"></ul>
+          </details>
+          <div class="hx-foot meta">erp_support &middot; every verdict here is the Today page&rsquo;s own health strip, in full &middot; this page changes nothing</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Leads (funnel + SLA explorer) ============ -->
+    <section class="view" id="view-leads" aria-label="Leads">
+      <div class="scroller" id="leadsScroll">
+        <div class="ld" id="ld">
+
+          <header class="ld-head ld-rise" style="--i:0">
+            <div class="ld-head-text">
+              <div class="eyebrow" id="ldEyebrow">LEADS &middot; FUNNEL &amp; SLA EXPLORER</div>
+              <h1 class="ld-title" id="ldTitle">Where leads stall, and how fast we answer</h1>
+              <p class="ld-sub" id="ldSub">Reading the leads&hellip;</p>
+              <p class="ld-stale" id="ldStale" role="status" hidden></p>
+            </div>
+            <div class="live-controls">
+              <div class="live-pill" id="ldPill" data-state="connecting" title="Live connection to the Leads feed">
+                <span class="live-dot"></span><b id="ldLive">CONNECTING</b><span class="live-ago" id="ldAgo"></span>
+              </div>
+              <button class="btn" id="ldDefsBtn" type="button" aria-expanded="false" aria-controls="ldDrawer" title="What every number on this page means">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5M12 16.6v.2"/></svg>Definitions
+              </button>
+              <button class="btn" id="ldCsv" type="button" title="Download the leads behind the current filters as a CSV file (Excel-ready)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>Download CSV
+              </button>
+              <button class="btn" id="ldRefresh" type="button" title="Re-read everything now (R)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh
+              </button>
+            </div>
+          </header>
+
+          <div class="ld-tabs ld-rise" style="--i:1" role="tablist" aria-label="Leads views">
+            <button type="button" role="tab" class="on" id="ldTabFunnel" data-tab="funnel" aria-selected="true" aria-controls="ldGrid">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></svg>Funnel &amp; SLA
+            </button>
+            <button type="button" role="tab" class="" id="ldTabSources" data-tab="sources" aria-selected="false" aria-controls="ldSources">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M9.3 19V5M14.7 19v-7M20 19v-11"/></svg>Sources &amp; cohorts
+            </button>
+            <span class="ld-tabs-ind" id="ldTabsInd" aria-hidden="true"></span>
+          </div>
+
+          <p class="ld-caveat ld-rise" id="ldCaveat" style="--i:1" role="note" hidden><span class="cv-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5.5M12 16.6v.2"/></svg></span><span class="cv-text" id="ldCaveatText"></span></p>
+
+          <section class="ld-filters ld-rise" style="--i:2" id="ldFilters" aria-label="Filters"></section>
+
+          <section class="ld-kpis" id="ldKpis" aria-label="Key numbers"></section>
+
+          <div class="ld-warn" id="ldWarn" role="note" hidden></div>
+
+          <section class="ld-grid" id="ldGrid">
+            <article class="ld-panel ld-rise span-7" style="--i:4" id="ldPFunnel">
+              <header><h3>Lead funnel</h3><span class="hint">stages the pipeline really has &middot; strict, so never above 100%</span></header>
+              <div class="ld-body" id="ldFunnel"></div>
+            </article>
+            <article class="ld-panel ld-rise span-5" style="--i:5" id="ldPSla">
+              <header><h3>SLA outcome</h3><span class="hint" id="ldSlaHint">click a segment to filter</span></header>
+              <div class="ld-body" id="ldSla"></div>
+            </article>
+            <article class="ld-panel ld-rise span-7" style="--i:6" id="ldPTtfr">
+              <header><h3>Time to first reply</h3><span class="hint">clock time from arrival to the first reply on record</span></header>
+              <div class="ld-body" id="ldTtfr"></div>
+            </article>
+            <article class="ld-panel ld-rise span-5" style="--i:7" id="ldPTrend">
+              <header><h3>Leads per day</h3><span class="hint">red = ended up breached</span></header>
+              <div class="ld-body" id="ldTrend"></div>
+            </article>
+            <article class="ld-panel ld-rise span-6" style="--i:8" id="ldPRep">
+              <header><h3>By sales rep</h3><span class="hint">click a row to filter</span></header>
+              <div class="ld-body" id="ldRep"></div>
+            </article>
+            <article class="ld-panel ld-rise span-6" style="--i:9" id="ldPSource">
+              <header><h3>By source</h3><span class="hint">click a row to filter</span>
+                <button type="button" class="linkbtn" data-open-tab="sources">Full source report &amp; cohorts &rarr;</button>
+              </header>
+              <div class="ld-body" id="ldSource"></div>
+            </article>
+            <article class="ld-panel ld-rise span-12" style="--i:10" id="ldPTable">
+              <header><h3>Every lead in view</h3><span class="hint" id="ldTableHint">click a column heading to sort</span></header>
+              <div class="ld-body" id="ldTable"></div>
+            </article>
+          </section>
+
+          <!-- ---- second tab: lead sources + arrival cohorts (static/sources.js) ---- -->
+          <section class="ld-sources" id="ldSources" aria-label="Lead sources and arrival cohorts" hidden>
+            <div class="sx-banner" id="sxBanner" role="note" hidden></div>
+            <div class="ld-grid">
+              <article class="ld-panel ld-rise span-8" style="--i:4" id="sxPCohort">
+                <header>
+                  <div class="sx-h"><h3>Cohort curves</h3><span class="hint" id="sxCohortHint">leads grouped by when they arrived, followed day by day since arrival</span></div>
+                  <div class="sx-controls" id="sxControls"></div>
+                </header>
+                <div class="ld-body" id="sxCohort"></div>
+              </article>
+              <article class="ld-panel ld-rise span-4" style="--i:5" id="sxPList">
+                <header><div class="sx-h"><h3>Each cohort</h3><span class="hint">click one to filter the table below</span></div>
+                  <button type="button" class="linkbtn" id="sxCsvCohort" title="Download the cohort curves as a CSV file (one row per cohort and day)">Cohort CSV</button>
+                </header>
+                <div class="ld-body" id="sxList"></div>
+              </article>
+              <article class="ld-panel ld-rise span-12" style="--i:6" id="sxPTable">
+                <header><div class="sx-h"><h3>Every source in view</h3><span class="hint">click a heading to sort &middot; click a source name to filter every panel by it</span></div>
+                  <span class="sx-sortnote" id="sxSortNote"></span>
+                </header>
+                <div class="ld-body" id="sxTable"></div>
+              </article>
+            </div>
+          </section>
+
+          <footer class="ld-foot meta" id="ldFoot">erp_support &middot; PostgreSQL &middot; read-only</footer>
+        </div>
+      </div>
+
+      <div class="ld-scrim" id="ldScrim" hidden></div>
+      <aside class="ld-drawer" id="ldDrawer" aria-hidden="true" aria-label="Definitions" tabindex="-1">
+        <header class="ld-dr-head">
+          <div><div class="eyebrow">DEFINITIONS</div><h2>What every number means</h2></div>
+          <button type="button" class="ld-dr-x" id="ldDefsClose" aria-label="Close the definitions">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </header>
+        <div class="ld-dr-body" id="ldDefsBody"></div>
+      </aside>
+    </section>
+
     <!-- ============ Reporting ============ -->
     <section class="view" id="view-reporting" aria-label="Reporting">
       <div class="scroller" id="reportScroll">
@@ -153,9 +441,117 @@
             </article>
           </section>
 
-          <footer class="rpt-foot mono" id="rptFoot">erp_support &middot; PostgreSQL &middot; live view</footer>
+          <footer class="rpt-foot meta" id="rptFoot">erp_support &middot; PostgreSQL &middot; live view</footer>
         </div>
       </div>
+    </section>
+
+    <!-- ============ Channels (marketing channel performance: managers + analysts) ============
+         Read-only. Its JSON is GET /api/channels (+ /api/channels.csv), desktop/channels_data.py: it reads only the two Phase 4
+         rollup tables. In a database without them (or without data) it draws a setup card with the exact commands, never zeros. -->
+    <section class="view" id="view-channels" aria-label="Channels">
+      <div class="scroller" id="chScroll">
+        <div class="ch" id="ch">
+
+          <header class="ld-head ch-rise" style="--i:0">
+            <div class="ld-head-text">
+              <div class="eyebrow">CHANNELS &middot; MARKETING PERFORMANCE</div>
+              <h1 class="ch-title" id="chTitle" data-tone="grey">Reading the channel rollup&hellip;</h1>
+              <p class="ld-sub" id="chSub"></p>
+              <div class="ch-chips" id="chChips"></div>
+              <p class="ld-stale" id="chStale" role="status" hidden></p>
+            </div>
+            <div class="live-controls">
+              <div class="live-pill" id="chPill" data-state="connecting" title="Live connection to the Channels feed">
+                <span class="live-dot"></span><b id="chLive">CONNECTING</b><span class="live-ago" id="chAgo"></span>
+              </div>
+              <button class="btn" id="chDefsBtn" type="button" aria-expanded="false" aria-controls="chDrawer" title="What every number on this page means">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5M12 16.6v.2"/></svg>Definitions
+              </button>
+              <button class="btn" id="chCsv" type="button" disabled title="Download the per-channel table behind the current filters as a CSV file (Excel-ready)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>Download CSV
+              </button>
+              <button class="btn" id="chXlsx" type="button" disabled title="Download the whole view as an Excel workbook: Summary, Channels, Campaigns, Placements (when loaded), Insights, Definitions (numbers stay numbers)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>Download Excel
+              </button>
+              <button class="btn" id="chRefresh" type="button" title="Re-read everything now (R)">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Refresh
+              </button>
+            </div>
+          </header>
+
+          <div class="ld-warn ch-warn ch-rise" id="chWarn" style="--i:1" role="note" hidden></div>
+
+          <section class="ld-filters ch-filters ch-rise" style="--i:2" id="chFilters" aria-label="Filters" hidden></section>
+
+          <div id="chSetup" hidden></div>
+
+          <section class="ch-kpis" id="chKpis" aria-label="Key numbers" hidden></section>
+
+          <section class="ld-grid ch-grid" id="chMain" hidden>
+            <article class="ld-panel ch-rise span-12 ins" style="--i:3" id="chPIns" aria-labelledby="insTitle">
+              <header>
+                <div class="sx-h"><h3 id="insTitle">Insights</h3><span class="hint">fixed, explainable rules &middot; reads the rollup only &middot; suggestions, nothing is run for you</span></div>
+                <div class="ch-head-tools"><button type="button" class="linkbtn" id="insHow" aria-expanded="false" aria-controls="chInsDrawer">How these are decided</button></div>
+              </header>
+              <div class="ld-body ins-body" id="insBody" aria-live="polite"><div class="ins-wait">Reading the insights&hellip;</div></div>
+            </article>
+            <article class="ld-panel ch-rise span-12" style="--i:4" id="chPChart">
+              <header>
+                <div class="sx-h"><h3 id="chChartTitle">Per day, by channel</h3><span class="hint">reads the channel rollup &middot; a day with no data is a gap, not a zero &middot; a weekly source gets its own per-week chart</span></div>
+                <div class="ch-head-tools"><div class="seg" id="chMetric" role="group" aria-label="Metric drawn"></div>
+                  <button type="button" class="linkbtn" id="chDailyCsv" disabled title="Download this chart's data as a CSV file (one row per day, channel, grain and currency, with the money)">Daily CSV</button></div>
+              </header>
+              <div class="ld-body" id="chChart"></div>
+            </article>
+            <article class="ld-panel ch-rise span-12" style="--i:5" id="chPTable">
+              <header><div class="sx-h"><h3>Every channel in view</h3><span class="hint">click a heading to sort &middot; click a channel to see its campaigns</span></div></header>
+              <div class="ld-body" id="chTable"></div>
+            </article>
+            <article class="ld-panel ch-rise span-12" style="--i:6" id="chPCamp">
+              <header><div class="sx-h"><h3 id="chCampTitle">Campaigns</h3><span class="hint">reads the campaign rollup for the selected channel only</span></div>
+                <div class="ch-head-tools"><button type="button" class="linkbtn" id="chCampOnly" hidden></button>
+                  <button type="button" class="linkbtn" id="chCampCsv" disabled title="Download these campaigns as a CSV file">Campaign CSV</button></div></header>
+              <div class="ld-body" id="chCamp"></div>
+            </article>
+            <article class="ld-panel ch-rise span-12 pl" style="--i:7" id="chPPlace" aria-labelledby="plTitle">
+              <header>
+                <div class="sx-h"><h3 id="plTitle">Placements</h3><span class="hint">where the display ads ran &middot; reads the placement rollup only &middot; suggestions are in Insights, nothing is changed for you</span></div>
+                <div class="ch-head-tools"><button type="button" class="linkbtn" id="plCsv" disabled title="Download the placements table behind the current filters and sort as a CSV file (Excel-ready)">Placements CSV</button></div>
+              </header>
+              <div class="ld-body pl-body" id="plBody" aria-live="polite"><div class="ins-wait">Reading the placements&hellip;</div></div>
+            </article>
+          </section>
+
+          <aside class="ch-fast ch-rise" style="--i:7" id="chFast" hidden>
+            <span class="ch-fast-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/></svg></span>
+            <div><h3>How this page stays fast</h3><div id="chFastBody"></div></div>
+          </aside>
+
+          <footer class="ld-foot meta" id="chFoot">erp_support &middot; PostgreSQL &middot; read-only</footer>
+        </div>
+      </div>
+
+      <div class="ld-scrim" id="chInsScrim" hidden></div>
+      <aside class="ld-drawer" id="chInsDrawer" aria-hidden="true" aria-label="How the insights are decided" tabindex="-1">
+        <header class="ld-dr-head">
+          <div><div class="eyebrow">INSIGHTS</div><h2>How these are decided</h2></div>
+          <button type="button" class="ld-dr-x" id="chInsClose" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </header>
+        <div class="ld-dr-body" id="chInsDrBody"></div>
+      </aside>
+      <div class="ld-scrim" id="chScrim" hidden></div>
+      <aside class="ld-drawer" id="chDrawer" aria-hidden="true" aria-label="Definitions" tabindex="-1">
+        <header class="ld-dr-head">
+          <div><div class="eyebrow">DEFINITIONS</div><h2>What every number means</h2></div>
+          <button type="button" class="ld-dr-x" id="chDefsClose" aria-label="Close the definitions">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </header>
+        <div class="ld-dr-body" id="chDefsBody"></div>
+      </aside>
     </section>
 
     <!-- ============ Management (Script Center, embedded) ============ -->
@@ -224,7 +620,7 @@
               <div class="f3d-labels" id="f3dLabels"></div>
               <div class="f3d-lb top" aria-hidden="true"></div><div class="f3d-lb bottom" aria-hidden="true"></div>
               <div class="f3d-hud">
-                <span class="f3d-chip mono" id="f3dFps" title="Measured frame rate and current render quality. Quality steps down by itself if the frame rate drops below about 40 fps.">measuring&hellip;</span>
+                <span class="f3d-chip meta" id="f3dFps" title="Measured frame rate and current render quality. Quality steps down by itself if the frame rate drops below about 40 fps.">measuring&hellip;</span>
                 <div class="f3d-btns">
                   <button type="button" class="f3d-btn accent" id="f3dTour" title="Fly the camera along the real journey of the newest lead (T)">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg><span>Cinematic tour</span>
@@ -239,7 +635,7 @@
               </div>
               <div class="trace-cap f3d-cap" id="f3dCap" aria-live="polite"><div class="tc-top"></div><div class="tc-text"></div><div class="tc-at"></div><div class="tc-bar"><span></span></div></div>
               <div class="f3d-note" id="f3dNote" role="status"></div>
-              <div class="f3d-help mono">drag to orbit &middot; right-drag to pan &middot; click, then scroll to zoom &middot; double-click resets</div>
+              <div class="f3d-help meta">drag to orbit &middot; right-drag to pan &middot; click, then scroll to zoom &middot; double-click resets</div>
             </div>
             <div class="flow-empty" id="flowEmpty">
               <div><span class="spinner"></span><b id="flowEmptyTitle">Mapping the pipeline&hellip;</b><span class="msg" id="flowEmptyMsg">Querying the database and the logs.</span></div>
@@ -286,5 +682,13 @@
 <script src="/static/flow3d/engine.js"></script>
 <script src="/static/flow3d/flow3d.js"></script>
 <script src="/static/flow.js"></script>
+<script src="/static/today.js"></script>
+<script src="/static/leads_filterbar.js"></script>
+<script src="/static/sources.js"></script>
+<script src="/static/leads.js"></script>
+<script src="/static/health.js"></script>
+<script src="/static/channels.js"></script>
+<script src="/static/insights.js"></script>
+<script src="/static/placements.js"></script>
 </body>
 </html>

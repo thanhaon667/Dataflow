@@ -51,6 +51,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from desktop import winutil  # noqa: E402
+from erp import typography  # noqa: E402  (stdlib only: the project's font tokens)
 
 STATE_DIR = PROJECT_ROOT / ".erp_desktop"
 STATE_FILE = STATE_DIR / "instance.json"
@@ -69,7 +70,7 @@ MAX_STREAMLIT_RESTARTS = 3
 logger = logging.getLogger("erp_desk")
 
 # Same brand theme as run_script_center.bat. Passed on the command line (not
-# .streamlit/config.toml) so dashboard/streamlit_app.py keeps its own look.
+# .streamlit/config.toml) so the theme belongs to this launch only.
 THEME_ARGS = [
     "--theme.base", "light",
     "--theme.primaryColor", "#3452eb",
@@ -85,9 +86,7 @@ THEME_ARGS = [
     "--theme.baseRadius", "16px",
     "--theme.buttonRadius", "12px",
     "--theme.showWidgetBorder", "true",
-    "--theme.font", "'Public Sans':https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap",
-    "--theme.headingFont", "'Fraunces':https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap",
-    "--theme.codeFont", "'IBM Plex Mono':https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap",
+    *typography.streamlit_theme_args(),     # Montserrat for text and headings, a system monospace for code (erp/typography.py)
 ]
 
 

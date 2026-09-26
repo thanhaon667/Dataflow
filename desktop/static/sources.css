@@ -1,0 +1,153 @@
+/* ERP Desk - Leads page, "Sources & cohorts" tab (static/sources.js, feed desktop/sources_data.py).
+   Same design language as leads.css: tokens come from shell.css, panels/empty states/notes are the .ld-* components,
+   only what this tab adds lives here. Responsive through the .ld container query leads.css already opens. */
+
+/* ------------------------------------------------------------------ the two tabs */
+.ld-tabs { position: relative; display: inline-flex; gap: 2px; padding: 4px; margin: 0 0 14px; border-radius: 14px;
+  background: #ebe7df; border: 1px solid var(--line); }
+.ld-tabs button { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 7px; border: 0; background: none;
+  padding: 8px 15px; border-radius: 10px; cursor: pointer; font-family: var(--font); font-size: 13px; font-weight: 600;
+  color: var(--ink-dim); transition: color .25s; }
+.ld-tabs button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.ld-tabs button:hover { color: var(--ink); }
+.ld-tabs button.on { color: var(--ink); }
+.ld-tabs button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.ld-tabs-ind { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 0; width: 0; border-radius: 10px;
+  background: var(--surface); box-shadow: 0 2px 8px rgba(28, 29, 34, .1); transition: transform .35s var(--ease), width .35s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .ld-tabs-ind { transition: none; } }
+.ld-sources[hidden], .ld-grid[hidden] { display: none; }
+
+/* the two column widths this tab adds to the shared .ld-grid (leads.css defines 5 / 6 / 7 / 12) */
+.ld-grid > .span-4 { grid-column: span 4; }
+.ld-grid > .span-8 { grid-column: span 8; }
+
+/* ------------------------------------------------------------------ the honest banner */
+.sx-banner { --sxc: var(--blue); display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 5px 13px; margin: 0 0 14px;
+  padding: 14px 18px 15px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line);
+  border-left: 4px solid var(--sxc); box-shadow: 0 6px 22px rgba(28, 29, 34, .045); }
+.sx-banner[hidden] { display: none; }
+.sx-banner .sx-b-ico { grid-column: 1; grid-row: 1 / span 3; width: 30px; height: 30px; border-radius: 10px; display: grid;
+  place-items: center; background: color-mix(in srgb, var(--sxc) 16%, #fff); }
+.sx-banner .sx-b-ico svg { width: 16px; height: 16px; fill: none; stroke: var(--sxc); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.sx-banner h4 { grid-column: 2; margin: 3px 0 0; font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--ink); }
+.sx-banner .sx-b-text { grid-column: 2; margin: 0; font-size: 13.5px; line-height: 1.6; color: #4b4d55; }
+.sx-banner ul { grid-column: 2; margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 5px; }
+.sx-banner li { position: relative; padding-left: 18px; font-size: 12.5px; line-height: 1.55; color: #4b4d55; }
+.sx-banner li::before { content: ""; position: absolute; left: 3px; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--sxc, var(--blue)); opacity: .55; }
+.sx-banner[data-level="single"], .sx-banner[data-level="low_n"] { --sxc: var(--amber); }
+.sx-banner[data-level="thin"] { --sxc: var(--blue); }
+.sx-banner[data-level="empty"] { --sxc: var(--ink-dim); }
+
+/* ------------------------------------------------------------------ panel headers with controls */
+.sx-h { min-width: 0; }
+.sx-h h3 { margin: 0; font-family: var(--font); font-size: 17px; font-weight: 600; }
+.sx-h .hint { display: block; text-align: left; margin-top: 2px; }
+.sx-controls { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.sx-controls .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 11px; background: #efece5; }
+.sx-controls .seg button { border: 0; background: none; padding: 5px 11px; border-radius: 8px; cursor: pointer;
+  font-family: var(--font); font-size: 11.5px; font-weight: 500; color: var(--ink-dim); transition: background .2s, color .2s; }
+.sx-controls .seg button:hover { color: var(--ink); }
+.sx-controls .seg button.on { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 4px rgba(28, 29, 34, .1); }
+.sx-controls .seg button:focus-visible, .sx-tbl th button:focus-visible, .sx-coh-row:focus-visible, .sx-src-name:focus-visible,
+#sxCsvCohort:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.sx-controls .lbl { font-family: var(--font); font-size: 9.5px; letter-spacing: .12em; color: var(--ink-dim); text-transform: uppercase; }
+.sx-sortnote { font-family: var(--font); font-size: 11px; color: var(--ink-dim); }
+#sxCsvCohort[disabled] { color: var(--ink-dim); cursor: default; text-decoration: none; opacity: .6; }
+#sxCsvCohort[disabled]:hover { text-decoration: none; }
+
+/* ------------------------------------------------------------------ cohort chart */
+#sxCohort .ld-plot { min-height: 300px; }
+.sx-single { display: flex; align-items: flex-start; gap: 9px; margin: 8px 0 0; padding: 9px 12px; border-radius: 12px;
+  background: rgba(242, 183, 5, .1); border: 1px solid rgba(242, 183, 5, .35); color: #4a3d05; font-size: 12.5px; line-height: 1.5; }
+.sx-single b { color: #6b5200; }
+.sx-selnote { margin: 8px 0 0; font-size: 12.5px; line-height: 1.5; color: #4b4d55; }
+.sx-selnote b { color: var(--ink); }
+.sx-selnote button { border: 0; background: #efece5; color: #33353d; font-family: var(--font); font-size: 11px; padding: 2px 9px;
+  border-radius: 999px; cursor: pointer; margin-left: 6px; }
+.sx-selnote button:hover { background: #e4dfd4; }
+
+/* ------------------------------------------------------------------ cohort list */
+.sx-cohs { display: grid; gap: 4px; }
+.sx-coh-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; grid-template-areas: "d l f" "b b b"; gap: 8px 9px;
+  align-items: center; width: 100%; text-align: left; border: 1px solid transparent; background: none; padding: 8px 10px 10px;
+  border-radius: 11px; cursor: pointer; transition: background .2s, border-color .2s; }
+.sx-coh-row:hover { background: #f7f5f0; }
+.sx-coh-row.on { background: rgba(52, 82, 235, .07); border-color: rgba(52, 82, 235, .3); }
+.sx-coh-row .sw { grid-area: d; width: 10px; height: 10px; border-radius: 3px; background: var(--c, var(--blue)); }
+.sx-coh-row .lbl { grid-area: l; min-width: 0; font-size: 12.5px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sx-coh-row .lbl em { display: block; font-style: normal; font-family: var(--font); font-size: 10.5px; font-weight: 400; color: var(--ink-dim);
+  font-variant-numeric: tabular-nums; }
+.sx-coh-row .fig { grid-area: f; text-align: right; font-family: var(--font); font-size: 15px; font-weight: 700; color: var(--ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sx-coh-row .fig small { display: block; font-size: 10px; font-weight: 400; color: var(--ink-dim); margin-top: 1px; }
+.sx-coh-row .bar { grid-area: b; height: 5px; border-radius: 3px; background: #efece5; overflow: hidden; }
+.sx-coh-row .bar i { display: block; height: 100%; border-radius: 3px; background: var(--c, var(--blue)); transition: width .7s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .sx-coh-row .bar i { transition: none; } }
+
+/* ------------------------------------------------------------------ source table */
+.sx-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+.sx-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.sx-tbl th, .sx-tbl td { padding: 8px 7px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+.sx-tbl th:first-child, .sx-tbl td:first-child, .sx-tbl th:last-child, .sx-tbl td:last-child { text-align: left; }
+.sx-tbl thead th { position: sticky; top: 0; z-index: 2; background: var(--surface); border-bottom: 1px solid var(--line);
+  font-family: var(--font); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); font-weight: 600; padding: 6px 9px; }
+.sx-tbl thead th button { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; letter-spacing: inherit;
+  text-transform: inherit; color: inherit; display: inline-flex; align-items: center; gap: 4px; }
+.sx-tbl thead th button:hover { color: var(--ink); }
+.sx-tbl thead th .ar { font-size: 8px; opacity: .55; }
+.sx-tbl thead th[aria-sort] { color: var(--ink); }
+.sx-tbl thead th[aria-sort] .ar { opacity: 1; color: var(--blue); }
+.sx-tbl tbody tr { transition: background .18s; }
+.sx-tbl tbody tr:hover { background: #faf9f6; }
+.sx-tbl tbody tr.on { background: rgba(52, 82, 235, .06); }
+.sx-tbl tbody tr:last-child td { border-bottom: 0; }
+.sx-tbl b { font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.sx-tbl small { display: block; font-family: var(--font); font-size: 10px; font-weight: 400; color: var(--ink-dim); margin-top: 1px;
+  font-variant-numeric: tabular-nums; }
+.sx-tbl td.dim b { color: #b9b5aa; }
+.sx-src-name { display: inline-flex; align-items: center; gap: 7px; border: 0; background: none; padding: 2px 0; cursor: pointer;
+  font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--ink); max-width: 210px; }
+.sx-src-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* a plain marker, not decoration: it only carries colour when this source is being filtered on */
+.sx-src-name i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #cbc6ba; transition: background .2s; }
+.sx-tbl tbody tr.on .sx-src-name i { background: var(--blue); }
+.sx-src-name:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.sx-tbl tbody tr.on .sx-src-name { color: var(--blue); }
+.sx-lead { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.sx-lead .sx-share { width: 58px; height: 4px; border-radius: 3px; background: #efece5; overflow: hidden; }
+.sx-lead .sx-share i { display: block; height: 100%; border-radius: 3px; background: var(--violet); }
+.sx-mini { display: inline-flex; gap: 2px; height: 13px; width: 74px; border-radius: 4px; overflow: hidden; background: #f2efe8; vertical-align: middle; }
+.sx-mini i { display: block; background: var(--c); min-width: 2px; }
+.sx-reps { display: flex; flex-wrap: wrap; gap: 4px; max-width: 250px; white-space: normal; }
+.sx-rep { display: inline-flex; align-items: baseline; gap: 4px; padding: 2px 8px; border-radius: 999px; background: #efece5;
+  font-family: var(--font); font-size: 10.5px; color: #4b4d55; white-space: nowrap; }
+.sx-rep b { font-size: 10.5px; font-weight: 600; }
+.sx-rep.solo { background: rgba(124, 92, 255, .12); color: #43307f; }
+.sx-tbl tfoot td { padding-top: 9px; font-size: 11.5px; color: var(--ink-dim); text-align: left; }
+
+/* ------------------------------------------------------------------ narrow windows (container query on .ld, like leads.css) */
+@container ld (max-width: 1080px) {
+  .ld-grid > .span-4, .ld-grid > .span-8 { grid-column: span 12; }
+}
+@container ld (max-width: 700px) {
+  /* the wide table becomes one card per source, exactly like the Leads table does */
+  .sx-wrap { overflow-x: visible; }
+  .sx-tbl thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .sx-tbl, .sx-tbl tbody, .sx-tbl tfoot, .sx-tbl tr, .sx-tbl td { display: block; width: 100%; }
+  .sx-tbl tr { padding: 10px 2px; border-bottom: 1px solid var(--line); }
+  .sx-tbl tbody tr:last-child { border-bottom: 0; }
+  .sx-tbl td { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 4px 0; border: 0; text-align: right; white-space: normal; }
+  .sx-tbl td::before { content: attr(data-label); flex: none; font-family: var(--font); font-size: 10px; letter-spacing: .08em;
+    color: var(--ink-dim); text-transform: uppercase; }
+  .sx-tbl td[data-label="Source"]::before { display: none; }
+  .sx-tbl small { display: inline; margin-left: 6px; }
+  .sx-tbl .sx-lead { flex-direction: row; align-items: center; gap: 8px; }
+  .sx-tbl .sx-reps { justify-content: flex-end; }
+  .sx-tbl tfoot td::before { display: none; }
+  .ld-tabs { width: 100%; }
+  .ld-tabs button { flex: 1; justify-content: center; padding: 8px 6px; }
+  .sx-controls { width: 100%; }
+  .sx-banner { grid-template-columns: minmax(0, 1fr); }
+  .sx-banner .sx-b-ico { display: none; }
+  .sx-banner h4, .sx-banner .sx-b-text, .sx-banner ul, .sx-banner li { grid-column: 1; }
+}

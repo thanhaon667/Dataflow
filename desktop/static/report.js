@@ -28,7 +28,7 @@
     { label: '0-19', color: C.red }, { label: '20-39', color: '#ff8a4c' }, { label: '40-59', color: C.amber },
     { label: '60-79', color: C.blue }, { label: '80-100', color: C.green }
   ];
-  var SVG_FONT_SERIF = "'Fraunces', Georgia, serif";
+  var FONT = D.font;                               // the ONE font (shell.css --font), read once by shell.js
 
   // ------------------------------------------------------------------ state
   var S = {
@@ -318,8 +318,8 @@
   function baseLayout(h, extra) {
     var lay = {
       paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', height: h, showlegend: false,
-      font: { family: "'Public Sans', sans-serif", color: C.ink, size: 12 }, margin: { l: 40, r: 14, t: 8, b: 34 },
-      hoverlabel: { bgcolor: C.ink, bordercolor: C.ink, font: { family: "'IBM Plex Mono', monospace", size: 11.5, color: '#fff' } },
+      font: { family: FONT, color: C.ink, size: 12 }, margin: { l: 40, r: 14, t: 8, b: 34 },
+      hoverlabel: { bgcolor: C.ink, bordercolor: C.ink, font: { family: FONT, size: 11.5, color: '#fff' } },
       xaxis: { showgrid: false, zeroline: false, showline: true, linecolor: C.line, ticks: 'outside', tickcolor: C.line, ticklen: 5, fixedrange: true },
       yaxis: { showgrid: true, gridcolor: C.grid, zeroline: false, showline: false, fixedrange: true, rangemode: 'tozero' },
       transition: { duration: 450, easing: 'cubic-in-out' }
@@ -329,9 +329,11 @@
     });
     return lay;
   }
+  D.chartKit = { colors: C, font: FONT, baseLayout: baseLayout, rgba: rgba };            // the Leads page draws its Plotly charts in exactly this style
   function draw(id, traces, layout, onClick) {
     var el = document.getElementById(id);
     if (!window.Plotly) { el.innerHTML = '<div class="empty"><div><b>Charts unavailable</b>plotly.js could not be loaded.</div></div>'; return; }
+    if (!D.fontsDone()) { D.fontsReady(function () { draw(id, traces, layout, onClick); }); return; }   // Plotly measures text once: wait for the font
     if (el._empty) { el.innerHTML = ''; el._empty = false; }
     Plotly.react(el, traces, layout, { displayModeBar: false, responsive: true });
     if (onClick && !el._bound) { el._bound = true; el.on('plotly_click', onClick); }
@@ -359,16 +361,16 @@
     var labels = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
     var sel = S.f.source;
     legend.innerHTML = labels.map(function (s) {
-      return '<button class="pill ' + (sel === s ? 'on' : '') + '" data-src="' + esc(s) + '" style="--c:' + srcColor(s) + '"><i></i>' + esc(prettySrc(s)) + ' <span class="mono">' + counts[s] + '</span></button>';
+      return '<button class="pill ' + (sel === s ? 'on' : '') + '" data-src="' + esc(s) + '" style="--c:' + srcColor(s) + '"><i></i>' + esc(prettySrc(s)) + ' <span class="meta">' + counts[s] + '</span></button>';
     }).join('');
     draw('pSource', [{
       type: 'pie', labels: labels.map(prettySrc), customdata: labels, values: labels.map(function (s) { return counts[s]; }), hole: 0.62, sort: false,
       marker: { colors: labels.map(function (s) { return sel && s !== sel ? rgba(srcColor(s), 0.28) : srcColor(s); }), line: { color: '#fff', width: 3 } },
-      pull: labels.map(function (s) { return s === sel ? 0.08 : 0; }), textinfo: 'percent', textfont: { color: '#fff', family: "'IBM Plex Mono', monospace", size: 11 },
+      pull: labels.map(function (s) { return s === sel ? 0.08 : 0; }), textinfo: 'percent', textfont: { color: '#fff', family: FONT, size: 11 },
       hovertemplate: '%{label}<br>%{value} lead(s) · %{percent}<extra></extra>', direction: 'clockwise', rotation: 20
     }], baseLayout(250, {
       margin: { l: 8, r: 8, t: 8, b: 8 },
-      annotations: [{ text: '<b>' + L.length + '</b><br>leads', showarrow: false, x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', font: { family: SVG_FONT_SERIF, size: 20, color: C.ink } }]
+      annotations: [{ text: '<b>' + L.length + '</b><br>leads', showarrow: false, x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', font: { family: FONT, size: 20, color: C.ink } }]
     }), function (ev) { var p = ev.points && ev.points[0]; if (p) setFilter('source', labels[p.pointNumber]); });
   }
 
@@ -418,7 +420,7 @@
   function showTip(sq, e) {
     var l = S.d.leads.filter(function (x) { return x.id === +sq.getAttribute('data-id'); })[0]; if (!l) return;
     var tip = $('#tip');
-    tip.innerHTML = '<b>' + esc(l.name) + '</b><br>' + esc(l.company || 'no company') + '<br><span class="mono">' + esc(prettySrc(l.src)) + ' · score ' + (l.score == null ? 'n/a' : l.score) + '<br>' + esc(slaText(l)) + '</span>';
+    tip.innerHTML = '<b>' + esc(l.name) + '</b><br>' + esc(l.company || 'no company') + '<br><span class="meta">' + esc(prettySrc(l.src)) + ' · score ' + (l.score == null ? 'n/a' : l.score) + '<br>' + esc(slaText(l)) + '</span>';
     tip.classList.add('show'); moveTip(e);
   }
   function moveTip(e) {
@@ -475,7 +477,7 @@
     var counts = [0, 0, 0, 0, 0]; L.forEach(function (l) { if (l.band >= 0) counts[l.band]++; });
     var sel = S.f.band;
     draw('pScore', [{
-      type: 'bar', x: BANDS.map(function (b) { return b.label; }), y: counts, text: counts.map(String), textposition: 'outside', cliponaxis: false, textfont: { family: "'IBM Plex Mono', monospace", size: 11 },
+      type: 'bar', x: BANDS.map(function (b) { return b.label; }), y: counts, text: counts.map(String), textposition: 'outside', cliponaxis: false, textfont: { family: FONT, size: 11 },
       marker: { color: BANDS.map(function (b, i) { return sel !== null && sel !== i ? rgba(b.color, 0.25) : b.color; }), cornerradius: 8 },
       hovertemplate: 'score %{x}<br>%{y} lead(s)<extra></extra>'
     }], baseLayout(260, { margin: { l: 30, r: 10, t: 22, b: 34 }, bargap: 0.25, yaxis: { dtick: Math.max.apply(null, counts) > 6 ? undefined : 1 } }),
@@ -499,7 +501,7 @@
       { type: 'bar', orientation: 'h', y: reps, x: bad, name: 'Overdue', marker: { color: reps.map(function (r) { return col(C.red, r, 'bad'); }), cornerradius: 6 }, hovertemplate: '%{y}<br>%{x} overdue<extra></extra>' }
     ], baseLayout(Math.max(220, 90 + reps.length * 50), {
       barmode: 'stack', bargap: 0.4, margin: { l: 8, r: 10, t: 8, b: 34 },
-      yaxis: { automargin: true, autorange: 'reversed', showgrid: false, rangemode: 'normal' },
+      yaxis: { automargin: true, autorange: 'reversed', showgrid: false, rangemode: 'normal', ticks: 'outside', ticklen: 10, tickcolor: 'rgba(0,0,0,0)' },   // invisible ticks = a gap between the rep names and the bars
       xaxis: { showgrid: true, gridcolor: C.grid, dtick: Math.max.apply(null, ok.map(function (v, i) { return v + bad[i]; }).concat([1])) > 6 ? undefined : 1 }
     }), function (ev) {
       var p = ev.points && ev.points[0]; if (!p) return;
@@ -561,7 +563,7 @@
       xaxis: { type: 'date', range: [localStr(mn - padMs), localStr(mx + padMs)], tickformat: '%d %b\n%H:%M', showgrid: true, gridcolor: C.grid },
       yaxis: { tickvals: ticks, ticktext: labels, automargin: true, autorange: 'reversed', showgrid: false, rangemode: 'normal', zeroline: false },
       shapes: [{ type: 'line', xref: 'x', yref: 'paper', x0: now, x1: now, y0: 0, y1: 1, line: { color: C.ink, width: 1.5, dash: 'dot' } }],
-      annotations: [{ x: now, y: 1, xref: 'x', yref: 'paper', text: 'now', showarrow: false, yanchor: 'bottom', font: { family: "'IBM Plex Mono', monospace", size: 10.5, color: C.ink } }]
+      annotations: [{ x: now, y: 1, xref: 'x', yref: 'paper', text: 'now', showarrow: false, yanchor: 'bottom', font: { family: FONT, size: 10.5, color: C.ink } }]
     }), function (ev) { var p = ev.points && ev.points[0]; if (p && p.customdata) setFilter('rep', p.customdata); });
   }
 
@@ -664,7 +666,7 @@
     });
   }
   $('#refreshBtn').addEventListener('click', refreshNow);
-  D.on('refresh-request', function () { if (D.view() !== 'dataflow') refreshNow(); });   // the Data Flow page has its own refresh
+  D.on('refresh-request', function () { if (D.view() !== 'dataflow' && D.view() !== 'today') refreshNow(); });   // Data Flow and Today have their own refresh
   var sel = $('#pollSel');
   sel.value = String(S.pollSec);
   sel.addEventListener('change', function () {

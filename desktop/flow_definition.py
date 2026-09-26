@@ -27,7 +27,7 @@ Data Flow page ("The map is out of date" card, or "Map is in sync"):
                                                              -> "inconsistent": fix the dict.
 Which source files a node stands for: its optional "files" list of project-relative paths, otherwise
 the paths in its "script" / "file" strings (comma separated). Runtime artifacts that may legitimately
-not exist yet (daily_digest_latest.json, erp_report.html ...) do NOT belong in "files".
+not exist yet (daily_digest_latest.json, daily_digest_history.json ...) do NOT belong in "files".
 
 --- Vocabulary -------------------------------------------------------------
 Trigger kinds (how data starts moving):
@@ -86,7 +86,6 @@ LANES = [
 # Ports/URLs probed on localhost (fixed here; the browser can never choose them).
 PROBES = {
     "webhook": "http://127.0.0.1:8000/health",                # run_webhook.bat
-    "cskh_dashboard": "http://127.0.0.1:8501/_stcore/health",  # run_dashboard.bat
 }
 
 # A scheduled task counts as "this job" when its command line contains one of these.
@@ -97,6 +96,8 @@ SCHEDULE_MARKERS = {
     "daily_check": ["run_daily_check.bat", "erp.daily_check"],
     "sync_employees": ["erp.sync_employees", "sync_employees.py"],
     "webhook": ["run_webhook.bat", "erp.webhook_app"],
+    "marketing_rollup": ["run_marketing_rollup.bat", "erp.marketing.rollup"],
+    "marketing_autorun": ["run_marketing_autorun.bat", "erp.marketing.autorun"],
 }
 
 # --------------------------------------------------------------------------- map sync check
@@ -118,6 +119,7 @@ IGNORE = {
     "erp/config.py": "Settings loader for .env: every node that calls the DB or an API implies it.",
     "erp/db.py": "SQLAlchemy engine helper: the PostgreSQL node already stands for it.",
     "erp/business_hours.py": "SLA business-hours arithmetic used inside erp/leads.py (the Dedup + assign node).",
+    "erp/typography.py": "Font tokens (Montserrat) shared by Script Center, the e-mail HTML and ERP Desk: presentation only, no data moves.",
     # ERP Desk / Data Flow plumbing (the app that draws this page, not a stage of the pipeline)
     "desktop/launcher.py": "ERP Desk supervisor: starts the servers, the window and the child processes.",
     "desktop/server.py": "ERP Desk web server: serves the pages and the JSON feeds, moves no business data.",
@@ -125,9 +127,42 @@ IGNORE = {
     "desktop/make_icon.py": "Generates the ERP Desk app icon. Cosmetic, one-off.",
     "desktop/flow_definition.py": "This map itself.",
     "desktop/flow_data.py": "Live numbers + the sync check of this map.",
+    "desktop/sla_words.py": "The shared English for the lead SLA outcomes, imported by the Today and Leads feeds: wording only, no data moves.",
+    # desktop/channels_data.py split into cohesive modules (clean-code pass 3); the Channels feed node names channels_data.py, which re-exports them
+    "desktop/channels_request.py": "Channels feed, request layer (whitelisted params, Request / View, parsing): part of desktop/channels_data.py, no data moves.",
+    "desktop/channels_money.py": "Channels feed, measures and currency-aware money cells: part of desktop/channels_data.py, pure functions.",
+    "desktop/channels_text.py": "Channels feed, wording (date ranges, page states, install / empty help): part of desktop/channels_data.py, pure functions.",
+    "desktop/channels_series.py": "Channels feed, daily / weekly series and filter options: part of desktop/channels_data.py, pure functions.",
+    "desktop/channels_queries.py": "Channels feed, SQL builders and read-only state readers: part of desktop/channels_data.py (same two rollup tables, same node).",
+    "desktop/channels_csv.py": "Channels feed, CSV export rows: part of desktop/channels_data.py, pure functions.",
+    # the Channels page's Insights panel and Excel report (GET /api/channels/insights, GET /api/channels/report.xlsx): same rollup tables, same Live Reporting node
+    "desktop/insights_rules.py": "Channels Insights engine: six fixed, explainable rules (pure functions, thresholds as named constants): part of the Live Reporting node, no data moves.",
+    "desktop/insights_queries.py": "Channels Insights SQL builders (read-only, bound parameters, the two rollup tables): part of the Live Reporting node, same tables as desktop/channels_data.py.",
+    "desktop/insights_data.py": "Channels Insights feed and Excel report store (GET /api/channels/insights and /api/channels/report.xlsx): part of the Live Reporting node, reads the rollup only.",
+    # the Channels page's Placements panel (GET /api/channels/placements[.csv]) and the placement rules of Insights: same Live Reporting node
+    "desktop/placements_queries.py": "Channels Placements SQL builders (read-only, bound parameters, the ONE placement rollup table + two name lookups): part of the Live Reporting node, never interaction_fact.",
+    "erp/marketing/sample_placements.py": "Writes a SYNTHETIC placement CSV (invented sites, apps, numbers) to data_inbox/ so the Placements feature can be tried; loads nothing, moves no data.",
+    "desktop/insights_xlsx.py": "Channels Excel writer (openpyxl, numeric cells, formula-safe text): part of the Live Reporting node, pure.",
+    # desktop/flow_data.py split into cohesive modules (clean-code pass 3); flow_data.py re-exports them
+    "desktop/flow_util.py": "Data Flow feed helpers (time formatting, redaction, log tailing): part of desktop/flow_data.py, pure functions.",
+    "desktop/flow_metrics.py": "Data Flow feed live readings (read-only DB counts, log / JSON files, webhook probe, schtasks scan): part of desktop/flow_data.py.",
+    "desktop/flow_triggers.py": "Data Flow feed trigger state (is each trigger armed): part of desktop/flow_data.py, pure functions.",
+    "desktop/flow_health.py": "Data Flow feed node health functions: part of desktop/flow_data.py, pure functions over the live readings.",
+    "desktop/flow_mapcheck.py": "Data Flow feed map sync check (unmapped scripts, stale nodes, inconsistent edges): part of desktop/flow_data.py.",
+    # desktop/today_data.py split into cohesive modules (clean-code pass 3); today_data.py re-exports them
+    "desktop/today_util.py": "Today feed helpers (timeouts, number / span formatting, log-once guard): part of desktop/today_data.py.",
+    "desktop/today_sql.py": "Today feed query texts (read-only SELECTs, incl. the shared lead past-SLA fragments): part of desktop/today_data.py, same tables and node.",
+    "desktop/today_build.py": "Today feed panel builders (tiles, attention list, since-yesterday line, detail drawer): part of desktop/today_data.py, pure functions.",
+    "desktop/today_health.py": "Today feed health cells and blind-input list, read from the Data Flow snapshot: part of desktop/today_data.py, pure functions.",
+    "desktop/today_assemble.py": "Today feed status sentence, rules text and payload assembly: part of desktop/today_data.py, pure functions.",
     # standalone learning demos (the Script Center lists them as LEARNING_DEMOS too)
     "postwebhook.py": "Standalone demo that POSTs a sample order to a third-party webhook. Not the lead pipeline.",
     "sql_change_webhook_demo.py": "Self-contained teaching demo of the polling pattern, runs on mock data.",
+    # marketing ingestion pipeline (the marketing_ingest node covers the pipeline itself)
+    "erp/marketing/connectors/base.py": "Abstract connector contract (records()/map_record()) and ConnectorError; moves no data on its own - the flat-file, ad_performance, email_campaign and placement_performance connectors implement it.",
+    "erp/marketing/perf_check.py": "One-off SCALE VERIFICATION script (throwaway schema, millions of synthetic rows). Not part of the live pipeline - see docs/marketing-data-architecture.md.",
+    "erp/marketing/rollup_check.py": "One-off SCALE VERIFICATION of the rollup layer (throwaway schema, millions of synthetic rows). Not part of the live pipeline - see docs/marketing-data-architecture.md s.8.",
+    "erp/marketing/sample_check.py": "One-off VERIFICATION of the ad_performance / email_campaign connectors on the owner's two real sample files, in a throwaway schema that is dropped afterwards. Not part of the live pipeline - see docs/marketing-data-architecture.md s.9.",
 }
 
 
@@ -182,6 +217,76 @@ NODES = [
         ],
         "headline": {"path": "tickets.total", "fmt": "int", "short": "tickets"},
         "live": "ticket_entry",
+    },
+    {
+        "id": "marketing_ingest", "label": "Marketing ingest", "kind": "job", "icon": "pull",
+        "lane": "intake", "col": 0, "row": 5.5, "stage": True,
+        "file": "erp/marketing/ingest.py", "script": "erp/marketing/ingest.py",
+        "files": ["erp/marketing/model.py", "erp/marketing/schema.py", "erp/marketing/pipeline.py",
+                  "erp/marketing/ingest.py", "erp/marketing/parse.py", "erp/marketing/connectors/flat_file.py",
+                  "erp/marketing/connectors/strict_csv.py", "erp/marketing/connectors/ad_performance.py",
+                  "erp/marketing/connectors/email_campaign.py", "erp/marketing/connectors/placement_performance.py",
+                  "db/sql/10_marketing_currency.sql"],
+        "summary": "Land -> validate/type -> dedupe -> load a marketing/channel export (clicks, reactions, sessions, conversions, "
+                    "spend, revenue) into the star schema (interaction_fact + dimensions). Four connectors: the generic flat-file/CSV "
+                    "reader, and two STRICT source-specific ones for the owner's real exports - ad_performance (paid social, weekly rows, "
+                    "money like '475,401 dong') and email_campaign (daily rows, EUR): exact headers, no guessed columns, no guessed "
+                    "M/D vs D/M dates, rows that break their sanity rules rejected and counted; the fourth, placement_performance, reads a display-network "
+                    "PLACEMENT report (site / app / banner slot, size, position, viewability; 14-column header, currency on the cell or --currency, "
+                    "placement text sanitised). Money keeps the currency the source "
+                    "reported (interaction_fact.currency, added by db/sql/10 - the owner runs it) and is never converted; two rows that "
+                    "share a natural key but differ are both KEPT and reported, never silently overwritten. A real API connector "
+                    "(Facebook Ads etc.) is Phase 2 and needs the owner's credentials, so nothing calls this automatically - it only "
+                    "runs when a person runs it.",
+        "inputs": ["A CSV / export file handed to it by a person (--connector flat_file | ad_performance | email_campaign | placement_performance)"],
+        "outputs": ["marketing_landing (raw)", "marketing_source/channel/campaign/creative/identity (dimensions)",
+                     "interaction_fact (monthly-partitioned fact, money + currency)", "marketing_ingest_run (one row per batch)",
+                     "a printed run summary: rejected rows with reasons, natural-key collisions kept, spend and revenue per currency"],
+        "triggers": [{"kind": "manual", "label": "python -m erp.marketing.ingest --connector <name> --csv <file> [--dry-run]", "armed_by": "always"}],
+        "stats": [
+            {"label": "Tables installed", "path": "marketing.installed", "fmt": "bool_yes"},
+            {"label": "Batches run", "path": "marketing.runs", "fmt": "int"},
+            {"label": "Fact rows loaded", "path": "marketing.fact_rows", "fmt": "int"},
+            {"label": "Rejected (malformed)", "path": "marketing.rows_invalid", "fmt": "int"},
+            {"label": "Last run", "path": "marketing.last_run_at", "fmt": "time"},
+        ],
+        "headline": {"path": "marketing.fact_rows", "fmt": "int", "short": "interactions"},
+        "live": "marketing_ingest",
+    },
+    {
+        "id": "marketing_autorun", "label": "Marketing autorun", "kind": "job", "icon": "pull",
+        "lane": "intake", "col": 0, "row": 6.9, "stage": True,
+        "file": "erp/marketing/autorun.py", "script": "erp/marketing/autorun.py",
+        "files": ["erp/marketing/autorun.py", "run_marketing_autorun.bat"],
+        "summary": "The INBOX PROCESSOR: an analyst drops marketing exports (CSV files) in data_inbox/incoming and one command turns them "
+                    "into loaded data and a fresh rollup. For each CSV it detects the connector from the header with the existing strict "
+                    "checks (ad_performance, email_campaign) and falls back to the generic flat_file ONLY when the file names its channel "
+                    "(filename <channel>__<currency>__x.csv, or a channel column) - otherwise it guesses nothing and moves the file to failed/ "
+                    "with a .reason.txt. It loads through the existing ingest pipeline (no parsing repeated here), moves the file to processed/ "
+                    "or failed/ (never deleting or rewriting the original), skips an identical file it already loaded (SHA-256 kept in "
+                    ".autorun_index.json inside the inbox), then runs the incremental rollup refresh ONCE. --dry-run reads and reports "
+                    "only. UNSCHEDULED: nothing runs it except a person - registering it in Task Scheduler is the owner's decision.",
+        "inputs": ["*.csv files dropped in data_inbox/incoming (or MARKETING_INBOX / --inbox) by a person"],
+        "outputs": ["rows in interaction_fact via the marketing ingest pipeline", "a refreshed rollup (marketing_rollup, once per run)",
+                     "files moved to processed/ or failed/ (+ <name>.reason.txt) next to the inbox",
+                     "a run summary table + data_inbox/marketing_autorun.log",
+                     ".autorun_index.json (content hashes + the last run) inside the inbox"],
+        "triggers": [
+            {"kind": "scheduled", "label": "Task Scheduler: run_marketing_autorun.bat, e.g. every hour", "armed_by": "schedule:marketing_autorun",
+             "recommended": True,
+             "detail": "Not set up until the owner creates the task. The job is safe to repeat: an identical file is never loaded twice."},
+            {"kind": "manual", "label": "python -m erp.marketing.autorun [--dry-run]  (or run_marketing_autorun.bat)", "armed_by": "always"},
+        ],
+        "stats": [
+            {"label": "Last result", "path": "autorun.result", "fmt": "text"},
+            {"label": "Last run", "path": "autorun.at", "fmt": "time"},
+            {"label": "Files handled by the last run", "path": "autorun.files", "fmt": "int"},
+            {"label": "Rows loaded by the last run", "path": "autorun.rows_loaded", "fmt": "int"},
+            {"label": "Files failed in the last run", "path": "autorun.failed", "fmt": "int"},
+            {"label": "Duplicates skipped in the last run", "path": "autorun.duplicate", "fmt": "int"},
+        ],
+        "headline": {"path": "autorun.rows_loaded", "fmt": "int", "short": "rows last run"},
+        "live": "marketing_autorun",
     },
 
     # ======================== 02 STORAGE & LOGIC ===============================
@@ -240,6 +345,44 @@ NODES = [
         ],
         "headline": {"path": "views.leads_rows", "fmt": "int", "short": "rows"},
         "live": "views",
+    },
+    {
+        "id": "marketing_rollup", "label": "Marketing rollup", "kind": "job", "icon": "pull",
+        "lane": "storage", "col": 1, "row": 7.0, "stage": True,
+        "file": "erp/marketing/rollup.py", "script": "erp/marketing/rollup.py",
+        "files": ["erp/marketing/rollup.py", "erp/marketing/rollup_placements.py", "erp/marketing/partitions.py", "db/sql/09_marketing_rollup.sql",
+                  "db/sql/11_marketing_placements.sql",
+                  "run_marketing_rollup.bat"],
+        "summary": "Phase 4: keeps the daily channel/campaign ROLLUP of interaction_fact current so a report never has to "
+                    "aggregate millions of raw rows. The rollup keeps the currency and the grain (day or week) in its key, so money is never "
+                    "added across currencies and a weekly export is never read as one day. Recomputes only the last few days plus any older day whose facts changed "
+                    "(DELETE range + INSERT ... GROUP BY, idempotent), pre-creates the next monthly fact partitions, and "
+                    "REPORTS - never drops - partitions older than the retention threshold. Nothing schedules it today: "
+                    "registering it in Task Scheduler is a system setting only the owner changes. Its two rollup tables are what ERP Desk's Channels "
+                    "page (Ctrl+7) reads; that page never triggers a refresh, it shows whatever the last run left. The same run also keeps the OPTIONAL "
+                    "placement rollup (interaction_placement_rollup, db/sql/11: day x campaign x placement x size x position x currency, incremental, with a "
+                    "per-campaign cap that folds the long tail into one bucket) that the Placements panel reads; without db/sql/11 that step logs one line and is skipped.",
+        "inputs": ["interaction_fact (read, one date range at a time)"],
+        "outputs": ["interaction_daily_rollup (per day/channel/campaign/currency/grain)", "interaction_daily_channel_rollup (per day/channel/currency/grain)",
+                     "interaction_placement_rollup (optional, db/sql/11: per day/campaign/placement/size/position/currency)",
+                     "marketing_rollup_run (one row per run)", "new empty interaction_fact partitions (look-ahead)",
+                     "read by the Channels page of ERP Desk (GET /api/channels, and GET /api/channels/placements for the placement rollup) - the only reports that read these tables"],
+        "triggers": [
+            {"kind": "scheduled", "label": "Task Scheduler: run_marketing_rollup.bat, e.g. every night", "armed_by": "schedule:marketing_rollup",
+             "recommended": True,
+             "detail": "run_marketing_rollup.bat after the night's loads (docs/marketing-data-architecture.md s.8). Not set up until the owner creates the task."},
+            {"kind": "manual", "label": "python -m erp.marketing.rollup  (or run_marketing_rollup.bat)", "armed_by": "always"},
+        ],
+        "stats": [
+            {"label": "Tables installed", "path": "rollup.installed", "fmt": "bool_yes"},
+            {"label": "Refresh runs", "path": "rollup.runs", "fmt": "int"},
+            {"label": "Rows written by the last run", "path": "rollup.last_rows", "fmt": "int"},
+            {"label": "Day x channel rows", "path": "rollup.channel_days", "fmt": "int"},
+            {"label": "Newest day in the rollup", "path": "rollup.newest_day", "fmt": "time"},
+            {"label": "Last good run", "path": "rollup.last_ok_at", "fmt": "time"},
+        ],
+        "headline": {"path": "rollup.channel_days", "fmt": "int", "short": "day x channel"},
+        "live": "marketing_rollup",
     },
 
     # ====================== 03 AI & INTEGRATIONS ===============================
@@ -441,11 +584,36 @@ NODES = [
     {
         "id": "live_report", "label": "Live Reporting", "kind": "output", "icon": "chart",
         "lane": "reporting", "col": 4, "row": 1.6, "stage": True,
-        "file": "desktop/report_data.py", "script": None,
-        "summary": "The Reporting page of this app: a background thread re-queries the database every few seconds, the page polls for changes and animates only what really changed. It also shows today's briefing from the digest files.",
-        "inputs": ["Leads, tickets, timeline (DB, same queries as erp/html_report.py)", "Digest files"],
-        "outputs": ["Linked, cross-filtered dashboards in this window"],
-        "triggers": [{"kind": "background", "label": "ERP Desk refresher thread, every few seconds", "armed_by": "flag:report_refresher"}],
+        "file": "desktop/report_data.py, desktop/today_data.py, desktop/leads_data.py, desktop/sources_data.py, desktop/health_data.py, desktop/channels_data.py, desktop/placements_data.py", "script": None,
+        "summary": "The Reporting page of this app: a background thread re-queries the database every few seconds, the page polls for changes and animates only what really changed. It also shows today's briefing from the digest files. The same node covers the Today landing page (the first page the app opens on): one plain-English status sentence, a 'since yesterday' line, six tiles, who to chase and a system-health strip, read on demand from the database (each query time-boxed) and from this Data Flow feed. A tile, an attention row or a clause of the 'since yesterday' line opens a detail drawer showing one lead or ticket in full (owner, arrival, deadline, the lead_ai_analysis summary, the lead_clickup_sync task and the newest lead_updates note); its rows travel in the same payload, so there is still exactly one poller. The status sentence consults the same armed-trigger verdicts: with the lead webhook offline or the ClickUp comment pull unscheduled it says 'No problems found, but the numbers may be incomplete' instead of a bare 'All good'. The Leads page (Ctrl+5) is a funnel + SLA explorer for analysts on the same node: server-side filters (date range, rep, source, status), stage-to-stage conversion, SLA outcomes, time to first reply, per-rep / per-source tables, a sortable detail table and a CSV download, all read on demand from v_leads_summary, lead_updates and lead_ai_analysis with the same 'past SLA' SQL as the Today page. Its second tab, 'Sources & cohorts' (desktop/sources_data.py), reads the same base rows again for analysts: one row per lead source (share of the view, how many reached each pipeline stage, the five SLA outcomes, median time to first reply, which reps got them) plus arrival-cohort curves - leads grouped by the day, week or month they arrived and followed day by day since arrival for 'replied', 'reached ClickUp' or 'past SLA'. Only the tab on screen polls, so the Leads page still has exactly one poller; the bucket, the metric and the selected cohort are whitelisted server-side like every other filter. The Health page (Ctrl+6, desktop/health_data.py) is the detail view of the Today health strip: one card per dependency (PostgreSQL, the lead webhook, ClickUp, DeepSeek, SMTP, each scheduled job, ERP Desk's own loops, Script Center) with its state, why, when it was last checked and last succeeded, what stops working without it and a copyable fix hint. It opens no connection and starts no thread: it composes this Data Flow snapshot and the Today payload, and it never runs or changes anything."
+                   + " The Channels page (Ctrl+7, desktop/channels_data.py; its Insights panel and Excel report are desktop/insights_*.py) is the marketing channel-performance report for managers and analysts: a plain-English headline, six KPI tiles (sessions, clicks, conversions, conversion rate, spend, revenue) with a previous-period delta and a sparkline, a per-day line chart per channel plus a per-week chart for a weekly source (a week is never drawn as one day), a per-channel table (share of sessions, CTR, conversion rate, spend, revenue, cost per conversion; sortable on the server) with a campaign drill-down, filters (date range, channel, campaign, currency), a Definitions drawer and three CSV downloads. Money is shown in the currency the source reported and is never converted or added across currencies: with several currencies in view every spend / revenue figure is listed per currency; derived revenue is labelled derived. It reads ONLY the two Phase 4 rollup tables (interaction_daily_channel_rollup, and interaction_daily_rollup for the drill-down or a campaign filter) plus the channel / campaign name lookups and the refresh journal - never interaction_fact or the landing table - so opening it costs the same at any raw volume. It does not run or schedule anything: the rollup job stays manual (or a Task Scheduler entry the owner creates), the page shows whatever exists. In the owner's database today the rollup tables are not installed, so it draws a 'not installed' setup card with the exact psql command, and once installed but empty a 'no data loaded yet' card - never a zero.",
+        "inputs": ["Leads, tickets, timeline (DB; the queries live in desktop/report_data.py)", "Digest files",
+                   "Today page: read-only SQL (leads, lead_updates, tickets, and for the detail drawer also lead_ai_analysis and "
+                   "lead_clickup_sync) plus the health verdicts of this Data Flow feed",
+                   "Leads page: read-only SQL (v_leads_summary, lead_updates, lead_ai_analysis), filtered on the server",
+                   "Sources & cohorts tab: the same read-only SQL plus lead_clickup_sync.last_synced_at (the day a ClickUp task appeared)",
+                   "Health page: no source of its own - the Today health cells (desktop/today_data.build_health) plus this "
+                   "Data Flow snapshot (armed triggers, Task Scheduler scan, node health) and erp/config.py as booleans only",
+                   "Channels page: read-only SQL on the two rollup tables (interaction_daily_channel_rollup, interaction_daily_rollup), the channel / "
+                   "campaign name lookups and the refresh journal (marketing_rollup_run) - only when the owner has installed db/sql/10_marketing_currency.sql and db/sql/09_marketing_rollup.sql. "
+                   "The Channels Insights panel and the Excel report read the same two rollup tables (one campaign-level scan over the analysed and the previous window) and never interaction_fact. "
+                   "The Placements panel (and the placement rules of Insights, and a Placements sheet of the Excel report) read ONE more table, interaction_placement_rollup, only when the owner has installed db/sql/11_marketing_placements.sql; without it the panel says so and nothing else changes"],
+        "outputs": ["Linked, cross-filtered dashboards in this window",
+                    "Today page: status sentence, a 'since yesterday' line, KPI tiles, attention list, system health and a click-through "
+                    "detail drawer (lead / ticket in full, AI summary, ClickUp task and last pulled note) - all in one GET /api/today",
+                    "Leads page: funnel, SLA and reply-time analysis (GET /api/leads/analysis) and a CSV download of the filtered leads (GET /api/leads/export.csv)",
+                    "Sources & cohorts tab: the per-source table and the arrival-cohort curves (GET /api/leads/sources) plus two aggregate CSV downloads, source table and cohort curves (GET /api/leads/sources.csv)",
+                    "Health page: one honest headline, one card per dependency with a fix hint, what the amber/red items "
+                    "mean for the numbers, and configuration truth as 'set' / 'not set' (GET /api/health)",
+                    "Channels page: headline, KPI tiles, per-day chart, per-channel table and campaign drill-down (GET /api/channels) and three aggregate CSV "
+                    "downloads - channels, daily, campaigns (GET /api/channels.csv); or, until the rollup exists, a setup card",
+                    "Channels Insights (GET /api/channels/insights, desktop/insights_*.py): severity-sorted findings from six fixed rules (spend without conversions, cost-per-conversion jump, "
+                    "conversion-rate drop, stale channel / data gap, spend concentration, campaigns worth scaling) with the evidence and a suggested action, judged per currency, plus plain-text automation ideas "
+                    "that schedule and run nothing; and an Excel workbook of the same view (GET /api/channels/report.xlsx: Summary, Channels, Campaigns, Placements when loaded, Insights, Definitions). "
+                    "Channels Placements (GET /api/channels/placements and /api/channels/placements.csv): where display ads ran (site, app or banner slot) with size, position, CTR, cost per conversion and viewability per currency, "
+                    "five more explainable rules in Insights (exclude candidates, scale candidates, low viewability, spend concentration, a clearly labelled reallocation ESTIMATE) - suggestions only, nothing is changed for the owner"],
+        "triggers": [{"kind": "background", "label": "ERP Desk refresher thread, every few seconds", "armed_by": "flag:report_refresher"},
+                     {"kind": "manual", "label": "Today, Leads (both tabs), Health and Channels pages: read on demand while the page is open (no background job)", "armed_by": "always"}],
         "stats": [
             {"label": "DB re-queries so far", "path": "report.refresh_count", "fmt": "int"},
             {"label": "Refresh interval (s)", "path": "report.interval", "fmt": "int"},
@@ -483,35 +651,8 @@ NODES = [
         "live": "inbox",
     },
     {
-        "id": "html_report", "label": "HTML report", "kind": "output", "icon": "chart2",
-        "lane": "reporting", "col": 4, "row": 4.6, "stage": True,
-        "file": "erp/html_report.py", "script": "erp/html_report.py",
-        "summary": "Generates the standalone erp_report.html (Plotly + custom CSS/JS) - a static snapshot you can open or send around. Also the source of the queries the live page reuses.",
-        "inputs": ["Leads, tickets, timeline (DB)"],
-        "outputs": ["erp_report.html"],
-        "triggers": [{"kind": "manual", "label": "python -m erp.html_report", "armed_by": "always"}],
-        "stats": [
-            {"label": "erp_report.html written", "path": "files.report_html_at", "fmt": "time"},
-            {"label": "Size (KB)", "path": "files.report_html_kb", "fmt": "int"},
-        ],
-        "headline": {"path": "files.report_html_at", "fmt": "time", "short": "built"},
-        "live": "html_report",
-    },
-    {
-        "id": "cskh_dashboard", "label": "CSKH dashboard", "kind": "output", "icon": "dash",
-        "lane": "reporting", "col": 4, "row": 5.6, "stage": True,
-        "file": "dashboard/streamlit_app.py", "script": "dashboard/streamlit_app.py",
-        "summary": "The original Streamlit dashboard: support tickets, leads & sales, and a staff vs. ClickUp cross-check.",
-        "inputs": ["Tickets, leads, staff (DB)", "ClickUp members"],
-        "outputs": ["Interactive tables and charts (http://localhost:8501)"],
-        "triggers": [{"kind": "manual", "label": "run_dashboard.bat (on demand)", "armed_by": "always"}],
-        "stats": [{"label": "Running on :8501", "path": "probe.cskh_dashboard", "fmt": "bool_up"}],
-        "headline": {"path": "probe.cskh_dashboard", "fmt": "bool_up", "short": "app"},
-        "live": "cskh_dashboard",
-    },
-    {
         "id": "powerbi", "label": "Power BI", "kind": "external", "icon": "pbi",
-        "lane": "reporting", "col": 4, "row": 6.6, "stage": False,
+        "lane": "reporting", "col": 4, "row": 4.6, "stage": False,
         "file": "db/sql/06_powerbi_readonly.sql",
         "summary": "Power BI Desktop connects with the read-only role powerbi_reader (DirectQuery or Import) to the two summary views - it can not see raw tables or write anything.",
         "inputs": ["v_leads_summary, v_tickets_summary (role powerbi_reader)"],
@@ -520,21 +661,6 @@ NODES = [
         "stats": [{"label": "Role powerbi_reader exists", "path": "views.role_ok", "fmt": "bool_yes"}],
         "headline": {"path": "views.role_ok", "fmt": "bool_ok", "short": "role"},
         "live": "powerbi",
-    },
-    {
-        "id": "timeline_chart", "label": "Timeline chart", "kind": "output", "icon": "gantt",
-        "lane": "reporting", "col": 4, "row": 7.6, "stage": True,
-        "file": "erp/task_timeline_chart.py", "script": "erp/task_timeline_chart.py",
-        "summary": "Draws a Gantt-style picture of what each employee is handling right now (active leads + open tickets, each bar ending at its SLA due date, red when breached) and saves it as task_timeline.png. Read-only against the database; it overwrites the PNG every time.",
-        "inputs": ["Active leads (current assignment) + open tickets, with SLA due dates (DB)"],
-        "outputs": ["task_timeline.png in the project root"],
-        "triggers": [{"kind": "manual", "label": "python -m erp.task_timeline_chart", "armed_by": "always"}],
-        "stats": [
-            {"label": "task_timeline.png written", "path": "files.timeline_png_at", "fmt": "time"},
-            {"label": "Size (KB)", "path": "files.timeline_png_kb", "fmt": "int"},
-        ],
-        "headline": {"path": "files.timeline_png_at", "fmt": "time", "short": "built"},
-        "live": "timeline_chart",
     },
 ]
 
@@ -586,12 +712,26 @@ EDGES = [
      "label": "users", "data": "UPDATE users.clickup_user_id / INSERT new staff (role sales)"},
     {"id": "e_tickets_db", "from": "ticket_entry", "to": "postgres", "trigger": "manual", "driver": "ticket_entry", "counter": "tickets",
      "label": "SQL", "data": "tickets, ticket_comments, ticket_status_history (seed SQL / hand entry)"},
+    {"id": "e_marketing_db", "from": "marketing_ingest", "to": "postgres", "trigger": "manual", "driver": "marketing_ingest", "counter": "marketing",
+     "label": "land -> load", "data": "marketing_landing, marketing_source/channel/campaign/creative/identity, interaction_fact (with its currency), marketing_ingest_run "
+                                       "(bulk INSERT ... ON CONFLICT, never row by row)"},
+    {"id": "e_rollup_db", "from": "marketing_rollup", "to": "postgres", "trigger": "scheduled", "driver": "marketing_rollup", "armed_by": "schedule:marketing_rollup",
+     "counter": "rollup",
+     "label": "fact -> rollup", "data": "SELECT interaction_fact by date range (grouped by currency and grain), then DELETE + INSERT interaction_daily_rollup / interaction_daily_channel_rollup (and, when db/sql/11 is installed, interaction_placement_rollup) + marketing_rollup_run; "
+                                        "creates empty future interaction_fact partitions (never detaches or drops one)"},
+    {"id": "e_autorun_ingest", "from": "marketing_autorun", "to": "marketing_ingest", "trigger": "scheduled", "driver": "marketing_autorun",
+     "armed_by": "schedule:marketing_autorun", "counter": "autorun",
+     "label": "CSV -> pipeline", "data": "Each *.csv in the inbox: connector detected from the header (or the filename / channel-column hint), then loaded by the "
+                                          "existing ingest pipeline; the file moves to processed/ or failed/ (+ .reason.txt)"},
+    {"id": "e_autorun_rollup", "from": "marketing_autorun", "to": "marketing_rollup", "trigger": "scheduled", "driver": "marketing_autorun",
+     "armed_by": "schedule:marketing_autorun", "counter": "autorun",
+     "label": "refresh once", "data": "After the files: ONE incremental rollup refresh, only when at least one file loaded rows"},
     # ---- views
     {"id": "e_db_views", "from": "postgres", "to": "views", "trigger": "passive", "driver": "views", "counter": None,
      "label": "joins", "data": "v_leads_summary + v_tickets_summary are computed from the tables on every SELECT"},
     {"id": "e_views_pbi", "from": "views", "to": "powerbi", "trigger": "manual", "driver": "powerbi", "counter": None,
      "label": "powerbi_reader", "data": "SELECT-only access to the two views (DirectQuery or Import)",
-     "via": [[1.5, 6.35], [2.5, 6.35]]},
+     "via": [[1.5, 5.6], [2.5, 5.6], [3.5, 5.5]]},
     # ---- monitoring / reporting reads
     {"id": "e_db_check", "from": "postgres", "to": "daily_check", "trigger": "manual", "driver": "daily_check", "counter": None,
      "label": "attention queries", "data": "SLA breaches, unsynced / un-analyzed leads, leads with no follow-up",
@@ -628,17 +768,9 @@ EDGES = [
      "label": "latest digest", "data": "The digest card in Script Center's Logs & digest section"},
     {"id": "e_db_live", "from": "postgres", "to": "live_report", "trigger": "background", "driver": "live_report", "armed_by": "flag:report_refresher",
      "counter": "refreshes",
-     "label": "re-query", "data": "Leads, tickets and the work-in-progress timeline, re-queried every few seconds",
+     "label": "re-query", "data": "Leads, tickets and the work-in-progress timeline, re-queried every few seconds (the Today, Leads and Health pages add their own read-only queries, on demand; "
+             "the Channels page reads only the marketing rollup tables, and only once db/sql/10 and db/sql/09 are installed)",
      "via": [[1.5, 1.86], [2.5, 1.86], [3.5, 1.86]]},
-    {"id": "e_db_html", "from": "postgres", "to": "html_report", "trigger": "manual", "driver": "html_report", "counter": "reports",
-     "label": "report queries", "data": "The same queries as the live page -> a static HTML snapshot",
-     "via": [[1.5, 4.05], [2.5, 4.1], [3.5, 4.3]]},
-    {"id": "e_db_timeline", "from": "postgres", "to": "timeline_chart", "trigger": "manual", "driver": "timeline_chart", "counter": None,
-     "label": "task query", "data": "Active leads + open tickets per employee with their SLA due dates",
-     "via": [[1.5, 7.3], [2.5, 7.3], [3.5, 7.3]]},
-    {"id": "e_db_cskh", "from": "postgres", "to": "cskh_dashboard", "trigger": "manual", "driver": "cskh_dashboard", "counter": None,
-     "label": "tickets + leads", "data": "Tickets, leads and staff for the CSKH dashboard",
-     "via": [[1.5, 5.2], [2.5, 5.2], [3.5, 5.75]]},
 ]
 
 

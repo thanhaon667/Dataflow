@@ -4,7 +4,6 @@
 # Generated at runtime (contain live business data) - not source
 daily_digest_history.json
 daily_digest_latest.json
-erp_report.html
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -109,3 +108,10 @@ Thumbs.db
 desktop.ini
 # ERP Desk runtime state (instance file, Edge app profile) - machine-local, not source
 .erp_desktop/
+
+# Real/test data files dropped in by the owner for ingestion tests - never committed
+data_inbox/
+
+# generated script output (not source)
+processed_orders.csv
+summary_report.json

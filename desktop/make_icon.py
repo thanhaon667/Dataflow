@@ -1,8 +1,7 @@
 """
 Generate the ERP Desk app icon (desktop/static/app.ico + app-192.png) in code -
-no binary asset is hand-made. The mark matches the brand square used by
-erp/html_report.py: a coral -> violet gradient tile, here carrying three rising
-"report" bars and a live dot.
+no binary asset is hand-made. The mark is the project's brand square: a coral ->
+violet gradient tile, here carrying three rising "report" bars and a live dot.
 
 Uses Pillow when it is importable (it ships with matplotlib, so it is already in
 the venv). If Pillow is missing, falls back to a stdlib-only writer that still

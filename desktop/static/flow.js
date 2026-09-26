@@ -665,15 +665,15 @@
   }
   function nodeTip(n) {
     var h = n.health || {}, trig = n.triggers.map(function (t) { return (TRIG[t.kind] || {}).short + ': ' + t.label; })[0] || '';
-    return '<b>' + esc(n.label) + '</b><br><span class="mono">' + esc(n.file || n.kind) + '</span><br>' +
-      esc(AUTO_TEXT[n.automation] || '') + '<br><span class="mono">' + esc(STATE[h.state] || '') + ' &middot; ' + esc(h.detail || '') + '</span><br><span class="mono">click for details</span>';
+    return '<b>' + esc(n.label) + '</b><br><span class="meta">' + esc(n.file || n.kind) + '</span><br>' +
+      esc(AUTO_TEXT[n.automation] || '') + '<br><span class="meta">' + esc(STATE[h.state] || '') + ' &middot; ' + esc(h.detail || '') + '</span><br><span class="meta">click for details</span>';
   }
   function edgeTip(e) {
     var bits = [];
     if (e.total != null) bits.push(num(e.total) + ' so far');
     if (e.last_at) bits.push('last ' + rel(e.last_at));
     var modeText = { live: 'running now', dormant: 'automated by design, not running now', unknown: 'automated by design, cannot be verified from here', manual: 'moves when a person runs it', passive: 'read on demand' }[e.mode] || '';
-    return '<b>' + esc(e.label) + '</b> <span class="mono">(' + esc((TRIG[e.trigger] || {}).short || e.trigger) + ')</span><br>' + esc(e.data) + '<br><span class="mono">' + esc(S.N[e.from].d.label) + ' &rarr; ' + esc(S.N[e.to].d.label) + '<br>' + esc(modeText) + (bits.length ? ' &middot; ' + esc(bits.join(' · ')) : '') + (e.mode_why && (e.mode === 'live' || e.mode === 'dormant' || e.mode === 'unknown') ? '<br>' + esc(e.mode_why) : '') + '</span>';
+    return '<b>' + esc(e.label) + '</b> <span class="meta">(' + esc((TRIG[e.trigger] || {}).short || e.trigger) + ')</span><br>' + esc(e.data) + '<br><span class="meta">' + esc(S.N[e.from].d.label) + ' &rarr; ' + esc(S.N[e.to].d.label) + '<br>' + esc(modeText) + (bits.length ? ' &middot; ' + esc(bits.join(' · ')) : '') + (e.mode_why && (e.mode === 'live' || e.mode === 'dormant' || e.mode === 'unknown') ? '<br>' + esc(e.mode_why) : '') + '</span>';
   }
   function bindCanvas(canvas) {
     canvas.addEventListener('mouseover', function (e) {

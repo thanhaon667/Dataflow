@@ -128,6 +128,7 @@ IGNORE = {
     "desktop/flow_definition.py": "This map itself.",
     "desktop/flow_data.py": "Live numbers + the sync check of this map.",
     "db/sample/sl_generate_sample.py": "Writes a SYNTHETIC social-listening export (invented brands and posts) into the sl schema so the Social page can be tried; not part of the live pipeline.",
+    "desktop/social_insights.py": "Social page insights: fixed explainable rules over the Social feed, plus an optional AI note (DeepSeek via erp/ai_client.py) sent aggregate numbers only; reads and writes nothing.",
     "desktop/social_data.py": "Social page feed: read-only aggregates of the `sl` social-listening schema for ERP Desk; no pipeline stage, nothing moves.",
     "desktop/sla_words.py": "The shared English for the lead SLA outcomes, imported by the Today and Leads feeds: wording only, no data moves.",
     # desktop/channels_data.py split into cohesive modules (clean-code pass 3); the Channels feed node names channels_data.py, which re-exports them

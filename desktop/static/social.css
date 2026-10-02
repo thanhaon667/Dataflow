@@ -29,3 +29,19 @@
 .soc-tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 #s-tTop .soc-tbl td:nth-child(-n+3) { white-space: nowrap; }
 #s-tTop .soc-tbl td:last-child { min-width: 240px; }
+
+.soc-find { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.soc-find li { border: 1px solid var(--line); border-left: 4px solid #cfc9bb; border-radius: 14px; padding: 10px 14px; background: #fbfaf7; }
+.soc-find li.sev-warn { border-left-color: var(--amber); } .soc-find li.sev-crit { border-left-color: var(--red); }
+.soc-find-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; font-size: 13.5px; }
+.soc-find-h b { font-weight: 600; flex: 1 1 320px; min-width: 0; }
+.soc-sev { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); }
+.sev-warn .soc-sev { color: #7a5f00; } .sev-crit .soc-sev { color: #b32a2f; }
+.soc-conf { font-size: 10.5px; color: var(--ink-dim); }
+.soc-ev { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.soc-act { margin: 6px 0 0; font-size: 12.5px; color: #4b4d55; }
+.soc-ai { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.soc-ai-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.soc-ai-h h4 { margin: 0; font-size: 14px; font-weight: 700; }
+.soc-ai-text { margin-top: 8px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--violet) 7%, #fff); border: 1px solid color-mix(in srgb, var(--violet) 25%, var(--line)); font-size: 13.5px; line-height: 1.6; max-width: 900px; }
+.soc-ai-text p { margin: 0 0 8px; } .soc-ai-text p:last-child { margin: 0; }

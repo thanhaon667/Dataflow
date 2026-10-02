@@ -167,6 +167,7 @@
       '<span class="hint" id="s-rangeTxt" style="margin-left:auto"></span></div>' +
       '<div class="ld-kpis" id="s-kpis"></div>' +
       '<div class="ld-grid">' +
+      panel(12, 'Insights', 'fixed rules, with the numbers behind each one', '<div id="s-ins"></div><div class="soc-ai" id="s-ai"></div>') +
       panel(7, 'Mentions by brand', 'non-spam posts; numbered circles are events', '<div id="s-lgBrand"></div><div id="s-cVol"></div><div class="soc-events" id="s-evList"></div><div id="s-tVol"></div>') +
       panel(5, 'Share of voice', 'by month', '<p class="ld-note" style="margin:0 0 8px">Each brand\'s share of all mentions in the group.</p><div id="s-cSov"></div>') +
       panel(7, 'Net sentiment over time', '% positive − % negative', '<div id="s-lgBrand2"></div><div id="s-cNet"></div><p class="ld-note">Above 0 means more praise than complaints.</p>') +
@@ -205,6 +206,7 @@
   function render() {
     if (!DATA || !built) return;
     hideTip();
+    if (render.lastIns !== insKey()) { render.lastIns = insKey(); scheduleInsights(); }
     var r = range(), lo = r[0], hi = r[1], len = hi - lo + 1, pl = Math.max(0, lo - len), ph = lo - 1, fb = S.brand, hasPrev = lo - len >= 0, B = DATA.brands;
     $('rangeTxt').textContent = dfull(lo) + ' – ' + dfull(hi) + ' · ' + len + ' days' + (S.plat === 'all' ? '' : ' · ' + pname(S.plat));
     $('notetxt').innerHTML = '<b>Check where this came from.</b> If the data was made by <code>db/sample/sl_generate_sample.py</code>, every brand, number and event on this page is invented.';
@@ -289,6 +291,52 @@
     stackBars($('cFunnel'), steps.map(function (s) { return { label: s[0], parts: [{ v: s[1], c: s[2], name: s[0] }] }; }), { lw: 200, rm: 120, rh: 34, max: Math.max(q.rows_in, 1), tot: function (rr, t) { return nf(t) + ' (' + pf(100 * t / Math.max(q.rows_in, 1), 0) + '%)'; }, aria: 'Cleaning funnel' });
     stackBars($('cKw'), DATA.keywords.map(function (k) { return { label: k[0], parts: [{ v: k[1], c: 'var(--blue)', name: 'Posts' }] }; }), { lw: 140, rh: 28, max: DATA.keywords.length ? DATA.keywords[0][1] : 1, aria: 'Keywords' });
   }
+
+  // ---- insights: rule findings (always) + an AI note (only when the reader asks) ----
+  var AI = { key: '', res: null, busy: false }, insTimer = null, insSeq = 0;
+  function insKey() { return S.days + '|' + S.brand; }
+  function insights(wantAi) {
+    var seq = ++insSeq, el = $('ins'); if (!el) return;
+    var url = '/api/social/insights?days=' + S.days + '&brand=' + S.brand + (wantAi ? '&ai=1' : '');
+    if (wantAi) { AI.busy = true; renderAi(); }
+    D.api.get(url).then(function (p) {
+      if (seq !== insSeq) return;
+      if (wantAi) { AI.busy = false; AI.key = insKey(); AI.res = p.ai || null; }
+      renderIns(p);
+    }).catch(function () {
+      if (seq !== insSeq) return;
+      if (wantAi) { AI.busy = false; AI.key = insKey(); AI.res = { error: 'The insight service did not answer. Press the button again.' }; }
+      if (!wantAi) el.innerHTML = '<p class="ld-note">Insights are unavailable right now.</p>';
+      renderAi();
+    });
+  }
+  var SEVN = { crit: 'Critical', warn: 'Look at this', info: 'For information' };
+  function renderIns(p) {
+    var el = $('ins'); if (!el) return;
+    el.innerHTML = '<ul class="soc-find">' + p.findings.map(function (f) {
+      return '<li class="sev-' + esc(f.severity) + '"><div class="soc-find-h"><span class="soc-sev">' + esc(SEVN[f.severity] || f.severity) + '</span><b>' + esc(f.what) + '</b>' +
+        '<span class="soc-conf">' + esc(f.confidence) + '</span></div><div class="soc-ev">' +
+        f.evidence.map(function (e) { return '<span class="ld-chip"><b>' + esc(String(e.label)) + '</b> ' + esc(String(e.value == null ? '—' : e.value)) + ' &middot; ' + esc(e.text) + '</span>'; }).join('') +
+        '</div><p class="soc-act">' + esc(f.action) + '</p></li>';
+    }).join('') + '</ul><details><summary>How these are decided</summary><p class="ld-note">Fixed rules, nothing learned. A finding appears only with at least ' + p.thresholds.min_posts +
+      ' posts, and counts as a warning only with at least ' + p.thresholds.enough_posts + '. Volume: a move of ±' + p.thresholds.volume_change_pct + '% against the previous equal window. Sentiment: ±' + p.thresholds.sentiment_shift_pts +
+      ' points. Spike days: ' + p.thresholds.spike_z + ' standard deviations above the average. Every number in a finding is printed beside it.</p></details>';
+    if (!AI.res || AI.key !== insKey()) AI.res = null;
+    if (p.ai) AI.configured = p.ai.configured;
+    renderAi();
+  }
+  function renderAi() {
+    var el = $('ai'); if (!el) return;
+    var r = AI.key === insKey() ? AI.res : null, h = '<div class="soc-ai-h"><h4>AI summary</h4>' +
+      '<button type="button" class="btn" id="s-aiBtn"' + (AI.busy ? ' disabled' : '') + '>' + (AI.busy ? 'Writing…' : r && r.text ? 'Write again' : 'Write AI summary') + '</button></div>';
+    if (r && r.text) h += '<div class="soc-ai-text">' + esc(r.text).replace(/\n+/g, '</p><p>').replace(/^/, '<p>') + '</p></div><p class="ld-note">' + esc(r.note || '') + (r.cached ? ' (cached)' : '') + '</p>';
+    else if (r && r.error) h += '<p class="ld-note">' + esc(r.error) + '</p>';
+    else h += '<p class="ld-note">An AI reads the aggregate numbers behind the findings above and writes what happened, the likely causes and three actions. ' +
+      'Only counts, shares and topic or channel names are sent to DeepSeek; no post text, author or link. It is written on request, never on a timer.' + (AI.configured === false ? ' DEEPSEEK_API_KEY is not set, so it will say so.' : '') + '</p>';
+    el.innerHTML = h;
+    var b = $('aiBtn'); if (b) b.onclick = function () { if (!AI.busy) insights(true); };
+  }
+  function scheduleInsights() { clearTimeout(insTimer); insTimer = setTimeout(function () { insights(false); }, 200); }
 
   // ---- load / states ----
   function setup(title, body, cmds) {

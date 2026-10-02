@@ -87,7 +87,7 @@ def build(conn) -> dict:
             "sents": list(SENTIMENTS), "topics": topics, "cube": cube, "by_topic": by_topic, "hours": hours, "top": top,
             "authors": authors, "keywords": keywords, "events": events,
             "quality": dict(zip(("rows_in", "rows_kept", "rows_dup", "rows_spam", "rows_bad"), map(int, qual))),
-            "tz": LOCAL_TZ}
+            "tz": LOCAL_TZ, "_nday": (d1 - d0).days + 1}
 
 
 class SocialStore:

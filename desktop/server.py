@@ -61,6 +61,7 @@ from desktop.channels_data import ChannelsStore
 from desktop.insights_data import InsightsStore, XLSX_MIME
 from desktop.placements_data import PlacementsStore
 from desktop.social_data import SocialStore
+from desktop.social_insights import InsightStore, unknown_params as social_insight_unknown
 from desktop.digest_service import DigestService
 from desktop.flow_data import FlowStore
 from desktop.health_data import HealthStore
@@ -93,6 +94,7 @@ class AppContext:
     placements: PlacementsStore | None = None   # the Channels page's Placements panel (the placement rollup only, own cache)
     channels: ChannelsStore | None = None   # the Channels page's feed (marketing rollup report); built in create_app when not given
     social: SocialStore | None = None       # the Social page's feed (social listening, schema `sl`); built in create_app when not given
+    social_insights: InsightStore | None = None   # rules + optional AI note for the Social page (no thread, AI only on request)
     token: str = field(default_factory=lambda: secrets.token_urlsafe(24))
     started_at: float = field(default_factory=time.time)
     quit_event: threading.Event = field(default_factory=threading.Event)
@@ -135,6 +137,8 @@ def create_app(ctx: AppContext) -> FastAPI:
         ctx.insights = InsightsStore(flow=ctx.flow)
     if ctx.placements is None:
         ctx.placements = PlacementsStore(flow=ctx.flow)   # on demand, a few seconds of cache, no thread; reads the placement rollup only
+    if ctx.social_insights is None:
+        ctx.social_insights = InsightStore()
     if ctx.social is None:
         ctx.social = SocialStore()   # on demand, a few seconds of cache, no thread; reads the sl schema only
     if ctx.channels is None:
@@ -278,6 +282,31 @@ def create_app(ctx: AppContext) -> FastAPI:
         if code != 200 or not isinstance(body, (bytes, bytearray)):
             return JSONResponse(body, status_code=code, headers={"Cache-Control": "no-store"})
         return Response(bytes(body), media_type="text/csv; charset=utf-8", headers={"Cache-Control": "no-store", **headers})
+
+    @app.get("/api/social/insights")
+    def social_insights(request: Request) -> JSONResponse:
+        """Social page insights: explainable rule findings for one window and focus brand, plus an AI note ONLY when ai=1 (aggregate
+        numbers only, cached, never blocks the rules). Unknown parameter names are a 400 that names them (lesson L-098)."""
+        params = _query_lists(request)
+        bad = social_insight_unknown(params)
+        if bad:
+            return JSONResponse({"ok": False, "error": f"Invalid {bad[0]}: unknown parameter"}, status_code=400, headers={"Cache-Control": "no-store"})
+        def one(name, default, lo, hi):
+            try:
+                return max(lo, min(hi, int((params.get(name) or [default])[-1])))
+            except ValueError:
+                return default
+        code, payload = ctx.social.get({})
+        if code != 200 or payload.get("state") != "ready":
+            return JSONResponse({"ok": False, "error": "No social listening data to analyse yet.", "state": payload.get("state")}, status_code=409 if code == 200 else code, headers={"Cache-Control": "no-store"})
+        from datetime import date, timedelta
+        d0 = date.fromisoformat(payload["d0"])
+        label = lambda i: (lambda d: f"{d.day} {d.strftime('%b')}")(d0 + timedelta(days=i))
+        days = one("days", 90, 0, 3650)
+        brand = one("brand", 0, 0, max(0, len(payload["brands"]) - 1))
+        want_ai = (params.get("ai") or ["0"])[-1] in ("1", "true")
+        fresh = (params.get("fresh") or ["0"])[-1] in ("1", "true")
+        return JSONResponse(ctx.social_insights.build(payload, days, brand, want_ai, label, fresh), headers={"Cache-Control": "no-store"})
 
     @app.get("/api/social")
     def social(request: Request) -> JSONResponse:

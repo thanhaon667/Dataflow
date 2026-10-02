@@ -1,0 +1,71 @@
+table Batches
+	lineageTag: 433a4e83-5820-599e-96d8-1709ef680991
+
+	column batch_id
+		dataType: int64
+		lineageTag: a98fe3a9-348f-5d5f-b6ba-d6dd3bda1b57
+		summarizeBy: none
+		sourceColumn: batch_id
+
+	column source_file
+		dataType: string
+		lineageTag: 3aa61946-15a1-579d-b3ae-40879a46a871
+		summarizeBy: none
+		sourceColumn: source_file
+
+	column loaded_at
+		dataType: dateTime
+		lineageTag: f77bea44-17c9-5242-9493-01bbfd709251
+		summarizeBy: none
+		sourceColumn: loaded_at
+
+	column rows_in
+		dataType: int64
+		lineageTag: 54d85372-5b46-5995-a357-b8bfac65ad89
+		summarizeBy: none
+		sourceColumn: rows_in
+
+	column rows_bad
+		dataType: int64
+		lineageTag: 48c381f0-0b32-5bce-aada-a728f9f3ff3f
+		summarizeBy: none
+		sourceColumn: rows_bad
+
+	column rows_dup
+		dataType: int64
+		lineageTag: 29b8b38d-4e0a-5397-bd54-806041a60fff
+		summarizeBy: none
+		sourceColumn: rows_dup
+
+	column rows_spam
+		dataType: int64
+		lineageTag: f9b0a3e3-e3e4-562c-96b6-2bff615f5a96
+		summarizeBy: none
+		sourceColumn: rows_spam
+
+	column rows_kept
+		dataType: int64
+		lineageTag: 21e833db-fd32-5016-b3b4-e1fc72cf16c5
+		summarizeBy: none
+		sourceColumn: rows_kept
+
+	measure 'Rows Loaded' = SUM(Batches[rows_in])
+		formatString: #,0
+		lineageTag: 67ed673c-c8e5-5e83-b188-4ba956d15d24
+
+	measure 'Rows Kept' = SUM(Batches[rows_kept])
+		formatString: #,0
+		lineageTag: 60ee1b35-bca8-5efd-bece-991f93376539
+
+	measure 'Rows Removed' = SUM(Batches[rows_bad]) + SUM(Batches[rows_dup]) + SUM(Batches[rows_spam])
+		formatString: #,0
+		lineageTag: 82b02860-aaec-5a29-8fb8-315f24342f2c
+
+	partition Batches = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema = "public", Item = "pbi_social_batch"]}[Data]
+				in
+				    Data

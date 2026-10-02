@@ -1,0 +1,5 @@
+expression PgServer = "127.0.0.1" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: f6318c6a-b9fb-5568-9d33-9147f98f2f1c
+
+expression PgDatabase = "erp_support" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: cab5a788-e3f1-5c6c-bc85-72fd104e3b67

@@ -1,0 +1,2 @@
+# Power BI Desktop writes these next to a project when it is opened: local cache and machine settings, never committed
+**/.pbi/

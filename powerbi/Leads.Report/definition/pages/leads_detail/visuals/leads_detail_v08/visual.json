@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "leads_detail_v08",
+  "position": {
+    "x": 788,
+    "y": 430,
+    "z": 8,
+    "height": 278,
+    "width": 476,
+    "tabOrder": 8
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Rep by SLA outcome'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Leads"
+                    }
+                  },
+                  "Property": "sales_rep"
+                }
+              },
+              "queryRef": "Leads.sales_rep",
+              "nativeQueryRef": "sales_rep",
+              "active": true
+            }
+          ]
+        },
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Leads"
+                    }
+                  },
+                  "Property": "sla_status"
+                }
+              },
+              "queryRef": "Leads.sla_status",
+              "nativeQueryRef": "sla_status",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Leads"
+                    }
+                  },
+                  "Property": "Lead Count"
+                }
+              },
+              "queryRef": "Leads.Lead Count",
+              "nativeQueryRef": "Lead Count"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

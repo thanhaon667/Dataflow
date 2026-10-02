@@ -1,0 +1,97 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "social_overview_v14",
+  "position": {
+    "x": 648,
+    "y": 482,
+    "z": 14,
+    "height": 226,
+    "width": 616,
+    "tabOrder": 14
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Channels'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "platform"
+                }
+              },
+              "queryRef": "Mentions.platform",
+              "nativeQueryRef": "platform",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "Mentions"
+                }
+              },
+              "queryRef": "Mentions.Mentions",
+              "nativeQueryRef": "Mentions"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "sentiment"
+                }
+              },
+              "queryRef": "Mentions.sentiment",
+              "nativeQueryRef": "sentiment"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

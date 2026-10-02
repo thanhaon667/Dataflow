@@ -1,0 +1,19 @@
+relationship e1846e86-e284-5dc3-89b2-3ce793a4a2bd
+	fromColumn: Mentions.date
+	toColumn: Calendar.date
+
+relationship 6520f364-b2e1-5ba9-9312-6b31f651b9f3
+	fromColumn: MentionTopics.date
+	toColumn: Calendar.date
+
+relationship 47616711-627e-5bf2-a662-e18d5972868b
+	fromColumn: Events.date
+	toColumn: Calendar.date
+
+relationship 0794e5cf-183c-53d2-bf22-6add5cecac71
+	fromColumn: Leads.created_date
+	toColumn: Calendar.date
+
+relationship a0a47029-9bbf-5654-9d35-de2809292db9
+	fromColumn: Channels.date
+	toColumn: Calendar.date

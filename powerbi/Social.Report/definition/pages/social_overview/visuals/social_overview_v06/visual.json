@@ -1,0 +1,60 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "social_overview_v06",
+  "position": {
+    "x": 16,
+    "y": 138,
+    "z": 6,
+    "height": 84,
+    "width": 240,
+    "tabOrder": 6
+  },
+  "visual": {
+    "visualType": "card",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Mentions'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "Mentions"
+                }
+              },
+              "queryRef": "Mentions.Mentions",
+              "nativeQueryRef": "Mentions"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

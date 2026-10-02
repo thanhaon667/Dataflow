@@ -1,0 +1,102 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "social_detail_v10",
+  "position": {
+    "x": 788,
+    "y": 582,
+    "z": 10,
+    "height": 126,
+    "width": 476,
+    "tabOrder": 10
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Cleaning: rows in and out'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Batches"
+                    }
+                  },
+                  "Property": "source_file"
+                }
+              },
+              "queryRef": "Batches.source_file",
+              "nativeQueryRef": "source_file"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Batches"
+                    }
+                  },
+                  "Property": "Rows Loaded"
+                }
+              },
+              "queryRef": "Batches.Rows Loaded",
+              "nativeQueryRef": "Rows Loaded"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Batches"
+                    }
+                  },
+                  "Property": "Rows Removed"
+                }
+              },
+              "queryRef": "Batches.Rows Removed",
+              "nativeQueryRef": "Rows Removed"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Batches"
+                    }
+                  },
+                  "Property": "Rows Kept"
+                }
+              },
+              "queryRef": "Batches.Rows Kept",
+              "nativeQueryRef": "Rows Kept"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

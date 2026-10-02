@@ -1,0 +1,132 @@
+table Channels
+	lineageTag: 8f50e898-67b6-5b9c-a8b0-e15554108106
+
+	column date
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		lineageTag: d42b17c9-bee3-5e91-a1b4-9df61a02d207
+		summarizeBy: none
+		sourceColumn: date
+
+	column channel
+		dataType: string
+		lineageTag: fb1feeb1-6af8-5914-824f-984e01293fae
+		summarizeBy: none
+		sourceColumn: channel
+
+	column medium
+		dataType: string
+		lineageTag: c0fbb08a-1843-51ac-8aa7-b0afe4c35b58
+		summarizeBy: none
+		sourceColumn: medium
+
+	column paid_or_organic
+		dataType: string
+		lineageTag: e8803447-4984-52bb-8e7c-5d19de8f980c
+		summarizeBy: none
+		sourceColumn: paid_or_organic
+
+	column currency
+		dataType: string
+		lineageTag: e9de86b2-e6ee-5833-a599-b8cbaffd3980
+		summarizeBy: none
+		sourceColumn: currency
+
+	column grain
+		dataType: string
+		lineageTag: 5c213319-abc2-5ccc-a3c1-ada5ccc866cc
+		summarizeBy: none
+		sourceColumn: grain
+
+	column impressions
+		dataType: int64
+		lineageTag: 4f42fe57-9cf0-5e9c-8c80-97b2893768b7
+		summarizeBy: none
+		sourceColumn: impressions
+
+	column clicks
+		dataType: int64
+		lineageTag: 06bdfba5-dd63-5f67-90d6-8a6e03de3c86
+		summarizeBy: none
+		sourceColumn: clicks
+
+	column sessions
+		dataType: int64
+		lineageTag: 2a84b8c0-9425-5646-b61c-1cf791a032dd
+		summarizeBy: none
+		sourceColumn: sessions
+
+	column conversions
+		dataType: int64
+		lineageTag: 158615fc-e815-5686-a608-c836137c4bb1
+		summarizeBy: none
+		sourceColumn: conversions
+
+	column spend
+		dataType: double
+		lineageTag: f1ba2683-e4d3-59a9-a3f9-64a79e385cad
+		summarizeBy: none
+		sourceColumn: spend
+
+	column revenue
+		dataType: double
+		lineageTag: 2c8bc402-b164-5add-bed0-b967ac22c81b
+		summarizeBy: none
+		sourceColumn: revenue
+
+	measure Sessions = SUM(Channels[sessions])
+		formatString: #,0
+		lineageTag: 86df000b-8e1e-566e-991a-933b28c7d81c
+
+	measure Clicks = SUM(Channels[clicks])
+		formatString: #,0
+		lineageTag: b6909e85-8829-5174-a88b-29b916cd0b15
+
+	measure Impressions = SUM(Channels[impressions])
+		formatString: #,0
+		lineageTag: a927061d-9d54-5d8c-ac3f-71c970c66553
+
+	measure Conversions = SUM(Channels[conversions])
+		formatString: #,0
+		lineageTag: ab3a09f1-d354-52bd-ab44-23b37193a8c2
+
+	measure CTR = DIVIDE([Clicks], [Impressions])
+		formatString: 0.00%
+		lineageTag: dd69f42b-d98c-59ae-bc5c-f71a9ad65840
+
+	measure 'Conversion Rate' = DIVIDE([Conversions], [Clicks])
+		formatString: 0.00%
+		lineageTag: 63c26e41-dbe8-5069-a64d-3f517230c738
+
+	measure Spend = IF(HASONEVALUE(Channels[currency]), SUM(Channels[spend]), BLANK())
+		formatString: #,0.00
+		lineageTag: 3182cb21-d59b-5c4b-87ae-eadbb00b55e8
+
+	measure Revenue = IF(HASONEVALUE(Channels[currency]), SUM(Channels[revenue]), BLANK())
+		formatString: #,0.00
+		lineageTag: 94f56191-822a-5171-9e45-81b32c621884
+
+	measure 'Cost per Conversion' = IF(HASONEVALUE(Channels[currency]), DIVIDE(SUM(Channels[spend]), [Conversions]), BLANK())
+		formatString: #,0.00
+		lineageTag: f1421342-8352-59c8-a2f0-3031508faf2e
+
+	measure 'Currencies in View' = DISTINCTCOUNT(Channels[currency])
+		formatString: 0
+		lineageTag: 4fecfd3d-ca12-59b4-bf5d-77118f90ff2c
+
+	measure 'Sessions Previous Month' = CALCULATE([Sessions], DATEADD('Calendar'[date], -1, MONTH))
+		formatString: #,0
+		lineageTag: c2d9c381-9557-543d-9964-83c7eaa6845c
+
+	measure 'Sessions vs Previous Month' = DIVIDE([Sessions] - [Sessions Previous Month], [Sessions Previous Month])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: b134afcf-8c88-5c6e-9337-ed8b56a4acff
+
+	partition Channels = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema = "public", Item = "pbi_channel_daily"]}[Data]
+				in
+				    Data

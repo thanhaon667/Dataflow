@@ -1,0 +1,72 @@
+table MentionTopics
+	lineageTag: 8245f15b-5430-55c6-9d40-4094240b1382
+
+	column mention_id
+		dataType: int64
+		lineageTag: 94f2681d-98eb-5531-b294-0438753e8e76
+		summarizeBy: none
+		sourceColumn: mention_id
+
+	column topic
+		dataType: string
+		lineageTag: db4a2eaa-292b-53ef-bfec-7299ebe47768
+		summarizeBy: none
+		sourceColumn: topic
+
+	column theme
+		dataType: string
+		lineageTag: a0ae316a-f712-5ae3-a8f2-0539bb142974
+		summarizeBy: none
+		sourceColumn: theme
+
+	column date
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		lineageTag: 1a57b5f4-0e4f-5858-8caf-3ae33bbbd843
+		summarizeBy: none
+		sourceColumn: date
+
+	column brand
+		dataType: string
+		lineageTag: 56e6aa20-2142-5f05-b009-84101b65d1d8
+		summarizeBy: none
+		sourceColumn: brand
+
+	column platform
+		dataType: string
+		lineageTag: 785e004b-be49-5999-ae80-0c0dbb8cb6c1
+		summarizeBy: none
+		sourceColumn: platform
+
+	column sentiment
+		dataType: string
+		lineageTag: 71a42284-b5bf-56b5-aa9c-daf8e217ac71
+		summarizeBy: none
+		sourceColumn: sentiment
+
+	column engagement
+		dataType: int64
+		lineageTag: c57f873b-96dc-5ebc-9319-d894515b4b4f
+		summarizeBy: none
+		sourceColumn: engagement
+
+	measure 'Topic Mentions' = COUNTROWS(MentionTopics)
+		formatString: #,0
+		lineageTag: e7734fe5-0cab-5fa0-bc7c-5789694d1442
+
+	measure 'Topic Negative' = CALCULATE([Topic Mentions], MentionTopics[sentiment] = "negative")
+		formatString: #,0
+		lineageTag: 7e62c9a8-5c9e-5a4a-93a0-219bb3307acf
+
+	measure 'Topic Negative %' = DIVIDE([Topic Negative], [Topic Mentions])
+		formatString: 0%
+		lineageTag: 66915052-34ad-58f1-8866-5cc61d32f4d7
+
+	partition MentionTopics = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema = "public", Item = "pbi_social_mention_topic"]}[Data]
+				in
+				    Data

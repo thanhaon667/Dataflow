@@ -1,0 +1,148 @@
+table Leads
+	lineageTag: a0f43a61-484b-535d-99ee-cc3cca36d0a0
+
+	column lead_id
+		dataType: int64
+		lineageTag: fe7e3509-46bf-57b8-90f4-fb4b27d0d5c5
+		summarizeBy: none
+		sourceColumn: lead_id
+
+	column created_date
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		lineageTag: 26cee863-6f41-5d3f-933a-536713235c92
+		summarizeBy: none
+		sourceColumn: created_date
+
+	column created_at
+		dataType: dateTime
+		lineageTag: 2c228d91-363a-5a1c-8c12-bf71c3f8252a
+		summarizeBy: none
+		sourceColumn: created_at
+
+	column source
+		dataType: string
+		lineageTag: ffb39341-b17e-5261-9ec4-f349c9012d44
+		summarizeBy: none
+		sourceColumn: source
+
+	column company
+		dataType: string
+		lineageTag: fee0f2c0-ef5f-5157-937e-853b7b2cfc81
+		summarizeBy: none
+		sourceColumn: company
+
+	column sales_rep
+		dataType: string
+		lineageTag: 8be24a21-5f00-5afe-beac-33a201d25de2
+		summarizeBy: none
+		sourceColumn: sales_rep
+
+	column assignment_reason
+		dataType: string
+		lineageTag: 4a930cfe-c0eb-5e92-a0b4-78f5a97ebcf4
+		summarizeBy: none
+		sourceColumn: assignment_reason
+
+	column potential_score
+		dataType: int64
+		lineageTag: 1179c5a4-3f5f-5935-9390-041e31bc6296
+		summarizeBy: none
+		sourceColumn: potential_score
+
+	column organization_type
+		dataType: string
+		lineageTag: 7a9d92e8-3bd6-5064-8a5c-08bee2f3abd2
+		summarizeBy: none
+		sourceColumn: organization_type
+
+	column scale_estimate
+		dataType: string
+		lineageTag: b9979f19-9514-54e2-be9e-e6f8b4c14390
+		summarizeBy: none
+		sourceColumn: scale_estimate
+
+	column clickup_status
+		dataType: string
+		lineageTag: 0fc69747-d990-5e16-aac5-9e69a3ea4af0
+		summarizeBy: none
+		sourceColumn: clickup_status
+
+	column sla_due_at
+		dataType: dateTime
+		lineageTag: cbd9c435-0749-543e-aff1-0c494394dfdd
+		summarizeBy: none
+		sourceColumn: sla_due_at
+
+	column first_reply_at
+		dataType: dateTime
+		lineageTag: 309b425a-1220-59e1-bef7-2045b97d7e3a
+		summarizeBy: none
+		sourceColumn: first_reply_at
+
+	column reply_minutes
+		dataType: double
+		lineageTag: c44d8f0c-8965-5d1c-b676-3a00ea69c973
+		summarizeBy: none
+		sourceColumn: reply_minutes
+
+	column reply_bucket
+		dataType: string
+		lineageTag: df592894-1624-5670-9690-2b0620c79e9c
+		summarizeBy: none
+		sourceColumn: reply_bucket
+
+	column sla_status
+		dataType: string
+		lineageTag: a9c11fcd-7983-5795-942a-a591d9667595
+		summarizeBy: none
+		sourceColumn: sla_status
+
+	measure 'Lead Count' = COUNTROWS(Leads)
+		formatString: #,0
+		lineageTag: 7046d452-9d4a-5dd0-afa6-cb6bb9e4270c
+
+	measure 'Replied in Time' = CALCULATE([Lead Count], Leads[sla_status] = "Replied in time")
+		formatString: #,0
+		lineageTag: 98841782-6ef9-5302-aee3-556c0cbdb2b6
+
+	measure 'Replied Late' = CALCULATE([Lead Count], Leads[sla_status] = "Replied late")
+		formatString: #,0
+		lineageTag: 15c9d278-5f96-50d8-b7ed-13cc83b7e9cf
+
+	measure 'Waiting Past SLA' = CALCULATE([Lead Count], Leads[sla_status] = "Waiting, past SLA")
+		formatString: #,0
+		lineageTag: 20f32676-7394-5722-8e6c-21a3444cb344
+
+	measure 'Waiting In Time' = CALCULATE([Lead Count], Leads[sla_status] = "Waiting, in time")
+		formatString: #,0
+		lineageTag: b6610f7f-73e7-5b37-97b5-317c429b18b0
+
+	measure 'SLA Met %' = DIVIDE([Replied in Time], [Replied in Time] + [Replied Late] + [Waiting Past SLA])
+		formatString: 0.0%
+		lineageTag: d218b07d-18a4-58aa-99c9-ba36ebc732ed
+
+	measure 'Median Reply Minutes' = MEDIAN(Leads[reply_minutes])
+		formatString: #,0
+		lineageTag: 56e2bd9b-f9e1-5975-883e-e3367b013a45
+
+	measure 'Avg Potential Score' = AVERAGE(Leads[potential_score])
+		formatString: 0.0
+		lineageTag: 0cea6152-f471-5016-b978-fca08649bdab
+
+	measure 'Leads Previous Month' = CALCULATE([Lead Count], DATEADD('Calendar'[date], -1, MONTH))
+		formatString: #,0
+		lineageTag: 5c2cbdb2-151b-5e91-a20f-0085baa011d1
+
+	measure 'Leads vs Previous Month' = DIVIDE([Lead Count] - [Leads Previous Month], [Leads Previous Month])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: a21b378c-44ac-5feb-89a5-c3d32c073968
+
+	partition Leads = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema = "public", Item = "pbi_leads"]}[Data]
+				in
+				    Data

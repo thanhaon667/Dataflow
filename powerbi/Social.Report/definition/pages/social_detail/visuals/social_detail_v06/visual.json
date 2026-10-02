@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "social_detail_v06",
+  "position": {
+    "x": 16,
+    "y": 138,
+    "z": 6,
+    "height": 296,
+    "width": 620,
+    "tabOrder": 6
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Negative share by topic and brand'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MentionTopics"
+                    }
+                  },
+                  "Property": "topic"
+                }
+              },
+              "queryRef": "MentionTopics.topic",
+              "nativeQueryRef": "topic",
+              "active": true
+            }
+          ]
+        },
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MentionTopics"
+                    }
+                  },
+                  "Property": "brand"
+                }
+              },
+              "queryRef": "MentionTopics.brand",
+              "nativeQueryRef": "brand",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "MentionTopics"
+                    }
+                  },
+                  "Property": "Topic Negative %"
+                }
+              },
+              "queryRef": "MentionTopics.Topic Negative %",
+              "nativeQueryRef": "Topic Negative %"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

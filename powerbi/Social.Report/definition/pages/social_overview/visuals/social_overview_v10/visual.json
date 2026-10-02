@@ -1,0 +1,60 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "social_overview_v10",
+  "position": {
+    "x": 1024,
+    "y": 138,
+    "z": 10,
+    "height": 84,
+    "width": 240,
+    "tabOrder": 10
+  },
+  "visual": {
+    "visualType": "card",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Share of voice'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "Share of Voice"
+                }
+              },
+              "queryRef": "Mentions.Share of Voice",
+              "nativeQueryRef": "Share of Voice"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

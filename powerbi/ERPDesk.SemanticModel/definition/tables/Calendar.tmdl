@@ -1,0 +1,65 @@
+table Calendar
+	lineageTag: b3fd0819-e369-5375-a975-2ec02da59845
+	dataCategory: Time
+
+	column date
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		isKey
+		lineageTag: 5c36ce62-64fb-5ffb-9170-5705eaaacf42
+		summarizeBy: none
+		sourceColumn: date
+
+	column year
+		dataType: int64
+		lineageTag: 391aad37-fa78-5650-ae51-a1167f485294
+		summarizeBy: none
+		sourceColumn: year
+
+	column month_number
+		dataType: int64
+		lineageTag: 830b07d2-2247-5510-9da0-8d0d506a634e
+		summarizeBy: none
+		sourceColumn: month_number
+
+	column month_name
+		dataType: string
+		lineageTag: ee6a7af7-3e40-560a-8e65-686d1124d5f8
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month_number
+
+	column year_month
+		dataType: string
+		lineageTag: 44b0417b-9279-5460-bd4c-bdd9a584227e
+		summarizeBy: none
+		sourceColumn: year_month
+
+	column week_start
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		lineageTag: 2a23684a-72dc-5a20-bbcd-edbdb1af21b1
+		summarizeBy: none
+		sourceColumn: week_start
+
+	column day_name
+		dataType: string
+		lineageTag: 3a0d41f1-e8be-5628-97bc-fdd012a54108
+		summarizeBy: none
+		sourceColumn: day_name
+		sortByColumn: day_of_week
+
+	column day_of_week
+		dataType: int64
+		lineageTag: 1949f829-2398-598d-9204-7d36c7fb4edf
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+	partition Calendar = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema = "public", Item = "pbi_calendar"]}[Data]
+				in
+				    Data

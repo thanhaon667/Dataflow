@@ -1,0 +1,194 @@
+{
+  "name": "ERP Desk",
+  "dataColors": [
+    "#3452eb",
+    "#ff5a36",
+    "#12b886",
+    "#7c5cff",
+    "#f2b705",
+    "#e0393e",
+    "#1c1d22",
+    "#9a968b"
+  ],
+  "good": "#12b886",
+  "neutral": "#f2b705",
+  "bad": "#e0393e",
+  "maximum": "#3452eb",
+  "center": "#f2b705",
+  "minimum": "#dbe1fb",
+  "foreground": "#1c1d22",
+  "foregroundNeutralSecondary": "#6b6f76",
+  "backgroundLight": "#f5f3ef",
+  "backgroundNeutral": "#e7e2d8",
+  "background": "#ffffff",
+  "tableAccent": "#3452eb",
+  "hyperlink": "#3452eb",
+  "textClasses": {
+    "callout": {
+      "fontFace": "Montserrat",
+      "fontSize": 32,
+      "color": "#1c1d22",
+      "fontWeight": "bold"
+    },
+    "title": {
+      "fontFace": "Montserrat",
+      "fontSize": 13,
+      "color": "#1c1d22",
+      "fontWeight": "bold"
+    },
+    "header": {
+      "fontFace": "Montserrat",
+      "fontSize": 12,
+      "color": "#1c1d22",
+      "fontWeight": "bold"
+    },
+    "label": {
+      "fontFace": "Montserrat",
+      "fontSize": 10,
+      "color": "#6b6f76"
+    },
+    "largeTitle": {
+      "fontFace": "Montserrat",
+      "fontSize": 24,
+      "color": "#1c1d22",
+      "fontWeight": "bold"
+    },
+    "smallLabel": {
+      "fontFace": "Montserrat",
+      "fontSize": 9,
+      "color": "#6b6f76"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "title": [
+          {
+            "show": true,
+            "fontFamily": "Montserrat",
+            "fontSize": 12,
+            "bold": true,
+            "fontColor": {
+              "solid": {
+                "color": "#1c1d22"
+              }
+            },
+            "alignment": "left"
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#ffffff"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "border": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#e7e2d8"
+              }
+            },
+            "radius": 16
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": false
+          }
+        ],
+        "legend": [
+          {
+            "show": true,
+            "position": "Top",
+            "fontSize": 10
+          }
+        ],
+        "categoryAxis": [
+          {
+            "fontSize": 10,
+            "labelColor": {
+              "solid": {
+                "color": "#6b6f76"
+              }
+            }
+          }
+        ],
+        "valueAxis": [
+          {
+            "fontSize": 10,
+            "labelColor": {
+              "solid": {
+                "color": "#6b6f76"
+              }
+            },
+            "gridlineColor": {
+              "solid": {
+                "color": "#f2efe8"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#f5f3ef"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "outspace": [
+          {
+            "color": {
+              "solid": {
+                "color": "#f5f3ef"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [
+          {
+            "fontSize": 28,
+            "fontFamily": "Montserrat",
+            "bold": true
+          }
+        ],
+        "categoryLabels": [
+          {
+            "show": false
+          }
+        ]
+      }
+    },
+    "slicer": {
+      "*": {
+        "header": [
+          {
+            "show": false
+          }
+        ],
+        "items": [
+          {
+            "fontSize": 11
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,158 @@
+table Mentions
+	lineageTag: c482ac3a-2e90-582c-a9a2-594d76015d67
+
+	column mention_id
+		dataType: int64
+		lineageTag: cf1906ce-8712-5fdd-92fe-058c2b79cf82
+		summarizeBy: none
+		sourceColumn: mention_id
+
+	column date
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		lineageTag: 3575fdaa-a4d6-5a1f-82e5-996e253c4778
+		summarizeBy: none
+		sourceColumn: date
+
+	column posted_at
+		dataType: dateTime
+		lineageTag: e7b3f9f1-9c85-5b45-b982-32a75316e417
+		summarizeBy: none
+		sourceColumn: posted_at
+
+	column hour_of_day
+		dataType: int64
+		lineageTag: 5957492b-4c22-55c2-b533-c0e79729a3ab
+		summarizeBy: none
+		sourceColumn: hour_of_day
+
+	column brand
+		dataType: string
+		lineageTag: 838be42e-0204-58f9-a53e-a25084193565
+		summarizeBy: none
+		sourceColumn: brand
+
+	column is_own_brand
+		dataType: boolean
+		lineageTag: ba1febbf-441f-5e3a-94c2-4eae3b4bb400
+		summarizeBy: none
+		sourceColumn: is_own_brand
+
+	column platform
+		dataType: string
+		lineageTag: d63f72b8-e54b-55a3-b842-b3165d4bdb42
+		summarizeBy: none
+		sourceColumn: platform
+
+	column sentiment
+		dataType: string
+		lineageTag: af89e023-ca18-5f83-8372-254994f7a0dc
+		summarizeBy: none
+		sourceColumn: sentiment
+
+	column sentiment_score
+		dataType: int64
+		lineageTag: 314107e3-c2e3-5eaf-b9e9-4fa8e0c8ff10
+		summarizeBy: none
+		sourceColumn: sentiment_score
+
+	column likes
+		dataType: int64
+		lineageTag: e80688d9-6826-511f-9c19-38fc2f555fe3
+		summarizeBy: none
+		sourceColumn: likes
+
+	column comments
+		dataType: int64
+		lineageTag: e6e3135d-8372-573c-8ecb-2c764d23d0fb
+		summarizeBy: none
+		sourceColumn: comments
+
+	column shares
+		dataType: int64
+		lineageTag: a06af97e-e16f-53c2-9074-8c965229335b
+		summarizeBy: none
+		sourceColumn: shares
+
+	column views
+		dataType: int64
+		lineageTag: 686ccd56-b2d1-5914-838a-ccc2350c60a4
+		summarizeBy: none
+		sourceColumn: views
+
+	column engagement
+		dataType: int64
+		lineageTag: 99d09e95-1ccf-59cc-a222-9db69c646556
+		summarizeBy: none
+		sourceColumn: engagement
+
+	column snippet
+		dataType: string
+		lineageTag: 919abb69-83c1-5a56-8c9d-97137e3c6bf0
+		summarizeBy: none
+		sourceColumn: snippet
+
+	measure Mentions = COUNTROWS(Mentions)
+		formatString: #,0
+		lineageTag: debe09be-0a30-5f1e-bb70-632115c09d23
+
+	measure Engagement = SUM(Mentions[engagement])
+		formatString: #,0
+		lineageTag: 318c6376-55b2-5e25-b736-9bff2c55bb34
+
+	measure Views = SUM(Mentions[views])
+		formatString: #,0
+		lineageTag: 4242999f-9f19-5f6c-8b33-f3b1f54a387f
+
+	measure Positive = CALCULATE([Mentions], Mentions[sentiment] = "positive")
+		formatString: #,0
+		lineageTag: e8b21465-3f86-521b-bdc5-c0ea14e405bd
+
+	measure Neutral = CALCULATE([Mentions], Mentions[sentiment] = "neutral")
+		formatString: #,0
+		lineageTag: 68e07000-17a8-54a5-9a5c-ac4d07621d21
+
+	measure Negative = CALCULATE([Mentions], Mentions[sentiment] = "negative")
+		formatString: #,0
+		lineageTag: bb63dcbb-4d6a-577b-98f4-1d65264a2a36
+
+	measure 'Net Sentiment' = DIVIDE([Positive] - [Negative], [Mentions])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: 78a1f936-f04e-5caf-b322-4236618a00a1
+
+	measure 'Negative %' = DIVIDE([Negative], [Mentions])
+		formatString: 0.0%
+		lineageTag: 43a12c9e-7770-55e0-803a-fd678e2acef0
+
+	measure 'Positive %' = DIVIDE([Positive], [Mentions])
+		formatString: 0.0%
+		lineageTag: 3e0b7592-97fa-5e0b-8fa8-5ccfbbd70278
+
+	measure 'Share of Voice' = DIVIDE([Mentions], CALCULATE([Mentions], REMOVEFILTERS(Mentions[brand])))
+		formatString: 0.0%
+		lineageTag: 81b40ed9-450e-5632-959d-55743f4b2be4
+
+	measure 'Mentions Previous Month' = CALCULATE([Mentions], DATEADD('Calendar'[date], -1, MONTH))
+		formatString: #,0
+		lineageTag: 46f6d552-5c1b-5d10-be55-d41e60585ddc
+
+	measure 'Mentions vs Previous Month' = DIVIDE([Mentions] - [Mentions Previous Month], [Mentions Previous Month])
+		formatString: +0.0%;-0.0%;0.0%
+		lineageTag: 05407d0a-3804-5ab3-a8a3-29860c5e64f5
+
+	measure 'Avg Mentions per Day' = AVERAGEX(VALUES('Calendar'[date]), [Mentions])
+		formatString: #,0
+		lineageTag: dd656fa4-853e-5e8a-8fef-b1d39f70317f
+
+	measure 'Engagement per Mention' = DIVIDE([Engagement], [Mentions])
+		formatString: #,0.0
+		lineageTag: 48163421-93aa-59e0-ae31-db828ca6f9a6
+
+	partition Mentions = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema = "public", Item = "pbi_social_mention"]}[Data]
+				in
+				    Data

@@ -1,0 +1,148 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "social_detail_v08",
+  "position": {
+    "x": 16,
+    "y": 446,
+    "z": 8,
+    "height": 262,
+    "width": 760,
+    "tabOrder": 8
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Posts with most engagement'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "date"
+                }
+              },
+              "queryRef": "Mentions.date",
+              "nativeQueryRef": "date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "brand"
+                }
+              },
+              "queryRef": "Mentions.brand",
+              "nativeQueryRef": "brand"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "platform"
+                }
+              },
+              "queryRef": "Mentions.platform",
+              "nativeQueryRef": "platform"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "sentiment"
+                }
+              },
+              "queryRef": "Mentions.sentiment",
+              "nativeQueryRef": "sentiment"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "Engagement"
+                }
+              },
+              "queryRef": "Mentions.Engagement",
+              "nativeQueryRef": "Engagement"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Mentions"
+                    }
+                  },
+                  "Property": "snippet"
+                }
+              },
+              "queryRef": "Mentions.snippet",
+              "nativeQueryRef": "snippet"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Mentions"
+                  }
+                },
+                "Property": "Engagement"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    }
+  }
+}

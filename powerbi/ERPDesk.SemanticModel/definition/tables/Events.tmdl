@@ -1,0 +1,24 @@
+table Events
+	lineageTag: f2412339-dc8f-5164-b612-5b8598cbded7
+
+	column date
+		dataType: dateTime
+		formatString: dd MMM yyyy
+		lineageTag: c3c477b8-f4d4-556c-85bc-76480ee90908
+		summarizeBy: none
+		sourceColumn: date
+
+	column label
+		dataType: string
+		lineageTag: 6c6efc6b-70a5-5df8-8266-41147b8076ca
+		summarizeBy: none
+		sourceColumn: label
+
+	partition Events = m
+		mode: directQuery
+		source =
+				let
+				    Source = PostgreSQL.Database(PgServer, PgDatabase),
+				    Data = Source{[Schema = "public", Item = "pbi_social_event"]}[Data]
+				in
+				    Data

@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="/static/leads.css">
 <link rel="stylesheet" href="/static/sources.css">
 <link rel="stylesheet" href="/static/channels.css">
+<link rel="stylesheet" href="/static/social.css">
 <link rel="stylesheet" href="/static/insights.css">
 <link rel="stylesheet" href="/static/placements.css">
 <link rel="stylesheet" href="/static/flow.css">
@@ -78,6 +79,10 @@
       <a class="nav-item" href="#channels" data-view="channels">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5 9 11.5l3.6 3.3L20.5 6.5M15 6.5h5.5V12"/></svg>
         <span class="nav-label">Channels</span><kbd>Ctrl 7</kbd>
+      </a>
+      <a class="nav-item" href="#social" data-view="social">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h16v10H12l-4.5 3.5v-3.5H4z"/><path d="M8 9.5h8M8 12.3h5"/></svg>
+        <span class="nav-label">Social</span><kbd>Ctrl 8</kbd>
       </a>
     </nav>
 
@@ -446,6 +451,13 @@
       </div>
     </section>
 
+    <!-- ============ Social (social listening for a delivery brand) ============
+         Read-only. Its JSON is GET /api/social (desktop/social_data.py), which reads only the `sl` schema; the page slices the
+         cubes in the browser. Without the schema (or without data) it draws a setup card with the exact commands. -->
+    <section class="view" id="view-social" aria-label="Social">
+      <div class="scroller" id="socScroll"><div class="soc" id="soc"></div></div>
+    </section>
+
     <!-- ============ Channels (marketing channel performance: managers + analysts) ============
          Read-only. Its JSON is GET /api/channels (+ /api/channels.csv), desktop/channels_data.py: it reads only the two Phase 4
          rollup tables. In a database without them (or without data) it draws a setup card with the exact commands, never zeros. -->
@@ -688,6 +700,7 @@
 <script src="/static/leads.js"></script>
 <script src="/static/health.js"></script>
 <script src="/static/channels.js"></script>
+<script src="/static/social.js"></script>
 <script src="/static/insights.js"></script>
 <script src="/static/placements.js"></script>
 </body>

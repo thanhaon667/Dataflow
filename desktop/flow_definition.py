@@ -127,6 +127,8 @@ IGNORE = {
     "desktop/make_icon.py": "Generates the ERP Desk app icon. Cosmetic, one-off.",
     "desktop/flow_definition.py": "This map itself.",
     "desktop/flow_data.py": "Live numbers + the sync check of this map.",
+    "db/sample/sl_generate_sample.py": "Writes a SYNTHETIC social-listening export (invented brands and posts) into the sl schema so the Social page can be tried; not part of the live pipeline.",
+    "desktop/social_data.py": "Social page feed: read-only aggregates of the `sl` social-listening schema for ERP Desk; no pipeline stage, nothing moves.",
     "desktop/sla_words.py": "The shared English for the lead SLA outcomes, imported by the Today and Leads feeds: wording only, no data moves.",
     # desktop/channels_data.py split into cohesive modules (clean-code pass 3); the Channels feed node names channels_data.py, which re-exports them
     "desktop/channels_request.py": "Channels feed, request layer (whitelisted params, Request / View, parsing): part of desktop/channels_data.py, no data moves.",

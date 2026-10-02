@@ -74,7 +74,7 @@
                   go: function (name) { setView(name); }, font: FONT, codeFont: CODE_FONT, fontsReady: fontsReady, fontsDone: function () { return fontsDone; } };
 
   // ---- navigation ---------------------------------------------------------
-  var VIEWS = ['today', 'reporting', 'management', 'dataflow', 'leads', 'health', 'channels'];   // order = order of the .nav-item links in shell.html
+  var VIEWS = ['today', 'reporting', 'management', 'dataflow', 'leads', 'health', 'channels', 'social'];   // order = order of the .nav-item links in shell.html
   var current = null;
   var frameLoaded = false;
 
@@ -129,7 +129,8 @@
     else if ((e.ctrlKey || e.metaKey) && e.key === '5') { e.preventDefault(); setView('leads'); }
     else if ((e.ctrlKey || e.metaKey) && e.key === '6') { e.preventDefault(); setView('health'); }
     else if ((e.ctrlKey || e.metaKey) && e.key === '7') { e.preventDefault(); setView('channels'); }
-    else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'r' || e.key === 'R') && (current === 'today' || current === 'reporting' || current === 'dataflow' || current === 'leads' || current === 'health' || current === 'channels')) { e.preventDefault(); emit('refresh-request'); }
+    else if ((e.ctrlKey || e.metaKey) && e.key === '8') { e.preventDefault(); setView('social'); }
+    else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'r' || e.key === 'R') && (current === 'today' || current === 'reporting' || current === 'dataflow' || current === 'leads' || current === 'health' || current === 'channels' || current === 'social')) { e.preventDefault(); emit('refresh-request'); }
     else if (e.key === 'Escape') hideQuit();
   });
 

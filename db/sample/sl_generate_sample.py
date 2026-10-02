@@ -119,6 +119,12 @@ def main():
     for kw, g, b in KEYWORDS:
         cur.execute("INSERT INTO sl.keyword(keyword,keyword_group,brand_id) VALUES (%s,%s,(SELECT id FROM sl.brand WHERE name=%s)) "
                     "ON CONFLICT (keyword) DO NOTHING", (kw, g, b))
+    if not a.keep:
+        y = date.today().year
+        cur.executemany("INSERT INTO sl.event(event_date,label) VALUES (%s,%s)", [
+            (date(y, 6, 6), "Sale 6.6"), (date(y, 7, 7), "Sale 7.7"), (date(y, 7, 22), "TikTok clip about a FastShip courier"),
+            (date(y, 8, 8), "Sale 8.8"), (date(y, 8, 14), "FastShip sorting-hub failure"),
+            (date(y, 9, 1), "FastShip free-shipping campaign (1-15 Sep)"), (date(y, 9, 9), "Sale 9.9")])
     cur.execute("INSERT INTO sl.import_batch(source_file) VALUES ('fake_export_%s_days.csv') RETURNING id", (a.days,))
     batch = cur.fetchone()[0]
     authors = [f"{rnd.choice(['nguyen','tran','le','pham','hoang','vu','dang','bui'])}_{rnd.choice(['an','binh','chi','dung','ha','khoa','lan','minh','nam','phuc','quang','thu','trang'])}{rnd.randint(1,999)}" for _ in range(2500)]

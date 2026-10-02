@@ -1,0 +1,51 @@
+/* ERP Desk - Social page (social listening for a delivery brand). Tokens (--surface, --line, --ink, --font, --code) come from shell.css.
+   Brand colours are the first four slots of the validated categorical palette (adjacent-pair CVD separation >= 8, relief by legend,
+   direct labels and table views); sentiment has its own diverging trio. Charts are drawn by social.js as plain SVG. */
+.soc { --b1:#2a78d6; --b2:#eb6834; --b3:#1baf7a; --b4:#eda100; --pos:#1a8a6a; --neg:#c8433f; --neu:#b9b8b0; --heat:#2a78d6; --grid:#ebeae4;
+  max-width: 1320px; margin: 0 auto; padding: 28px 32px 60px; font-family: var(--font); }
+.soc h1 { font-size: clamp(22px, 2.5vw, 30px); font-weight: 700; margin: 6px 0 6px; }
+.soc h2 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+.soc .sub { color: #52514e; margin: 0; max-width: 78ch; }
+.soc .note { margin-top: 12px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--b4); border-radius: 6px; color: #52514e; font-size: 12.5px; }
+.soc .bar { position: sticky; top: 0; z-index: 5; background: var(--bg, #f4f1ea); padding: 10px 0; margin-top: 14px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: flex-end; }
+.soc .f { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.soc .f label, .soc .lab { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: #7c7b76; }
+.soc .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.soc .seg button { border: 0; background: none; color: #52514e; padding: 6px 12px; font: inherit; font-size: 12.5px; cursor: pointer; border-right: 1px solid var(--line); }
+.soc .seg button:last-child { border-right: 0; }
+.soc .seg button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+.soc select { font: inherit; font-size: 12.5px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+.soc button:focus-visible, .soc select:focus-visible, .soc summary:focus-visible { outline: 2px solid var(--b1); outline-offset: 2px; }
+.soc .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 16px; }
+.soc .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.soc .kpi .v { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 2px; }
+.soc .kpi .d { font-size: 12px; color: #52514e; margin-top: 2px; }
+.soc .up { color: var(--pos); } .soc .dn { color: var(--neg); } .soc .muted { color: #7c7b76; }
+.soc .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.soc .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; grid-column: span 12; }
+@media (min-width: 1000px) { .soc .s4 { grid-column: span 4; } .soc .s5 { grid-column: span 5; } .soc .s6 { grid-column: span 6; } .soc .s7 { grid-column: span 7; } .soc .s8 { grid-column: span 8; } }
+.soc .card h3 { font-size: 13.5px; font-weight: 700; margin: 0 0 2px; }
+.soc .card p.d { margin: 0 0 10px; font-size: 12.5px; color: #52514e; }
+.soc .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: #52514e; margin-bottom: 6px; }
+.soc .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.soc svg { display: block; width: 100%; overflow: visible; stroke: none; }   /* shell.css gives every svg a currentColor stroke: charts here set their own stroke attributes */
+.soc svg text { font: 11px var(--font); fill: #7c7b76; }
+.soc svg .val { fill: #52514e; font-variant-numeric: tabular-nums; }
+.soc table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.soc th, .soc td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.soc th { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: #7c7b76; font-weight: 600; }
+.soc td.n, .soc th.n { text-align: right; }
+.soc .w { overflow-x: auto; }
+.soc details { margin-top: 8px; } .soc summary { cursor: pointer; color: #52514e; font-size: 12px; }
+.soc .tag { display: inline-block; padding: 1px 7px; border-radius: 9px; border: 1px solid currentColor; font-size: 11px; }
+.soc .events { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: #52514e; margin-top: 8px; }
+.soc .events b { display: inline-block; min-width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 8px; background: var(--ink); color: #fff; font-size: 10px; margin-right: 5px; }
+.soc .alert { display: grid; grid-template-columns: 96px 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.soc .alert:last-child { border: 0; }
+@media (max-width: 700px) { .soc { padding: 20px 16px 50px; } .soc .alert { grid-template-columns: 1fr; gap: 4px; } .soc .alert .tag { justify-self: start; } }
+.soc .setup { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; max-width: 760px; }
+.soc .setup code, .soc code { font-family: var(--code); font-size: 12px; background: #efece5; padding: 2px 6px; border-radius: 4px; }
+.soc .setup pre { font-family: var(--code); font-size: 12px; background: #efece5; padding: 10px 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
+.soc-tip { position: fixed; pointer-events: none; z-index: 60; background: var(--surface, #fff); border: 1px solid var(--line, #e3e2dc); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); max-width: 260px; display: none; }
+.soc-tip .r { display: flex; justify-content: space-between; gap: 14px; font-variant-numeric: tabular-nums; }
+.soc-tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }

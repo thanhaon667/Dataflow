@@ -54,6 +54,13 @@ CREATE TABLE IF NOT EXISTS sl.spam_pattern (
     reason   VARCHAR(60) NOT NULL
 );
 
+-- Real-world events to mark on the dashboard charts (campaigns, outages, viral posts).
+CREATE TABLE IF NOT EXISTS sl.event (
+    id          SERIAL PRIMARY KEY,
+    event_date  DATE NOT NULL,
+    label       VARCHAR(120) NOT NULL
+);
+
 -- ---------------------------------------------------------------------------
 -- 2. Landing: one row per exported row, text as delivered, nothing rejected
 -- ---------------------------------------------------------------------------
@@ -347,17 +354,17 @@ FROM sl.import_batch;
 --    Patterns are written accent-free and lowercase.
 -- ---------------------------------------------------------------------------
 INSERT INTO sl.topic(code, label, theme, pattern) VALUES
- ('late',      'Giao tre',            'service',    'giao (cham|tre|lau)|tre (hen|gio)|qua (han|gio)|cho (mai|hoai)|\mlate\M|delay'),
- ('lost',      'That lac hang',       'service',    'that lac|mat (hang|don)|khong (nhan|thay) (duoc )?hang|lost'),
- ('damaged',   'Hang hu / mop meo',   'service',    'hu (hong|hai)|mop|meo|vo nat|bep dum|\mvo\M|damaged|rach'),
- ('rude',      'Thai do shipper',     'service',    'shipper.*(cau gat|thai do|vo le|chui|quat)|(cau gat|vo le|thai do te)|rude'),
- ('tracking',  'Theo doi don hang',   'experience', 'theo doi|tracking|ma van don|khong cap nhat|app (loi|lag)|trang thai don'),
- ('fee',       'Phi / gia',           'price',      '\mphi\M|gia cuoc|\mdat\M|\mre\M|tien ship|phu thu|phi ship|cuoc phi'),
- ('cod',       'COD / hoan tien',     'price',      '\mcod\M|hoan tien|thu ho|doi soat|den bu|boi thuong'),
- ('support',   'CSKH',                'service',    'cskh|tong dai|hotline|ho tro|khieu nai|phan hoi|bo mac'),
- ('promo',     'Khuyen mai',          'promo',      'khuyen mai|ma giam|voucher|freeship|mien phi ship|uu dai|sale'),
- ('fast',      'Giao nhanh',          'service',    'giao nhanh|toc do|hoa toc|trong ngay|nhan hang som|dung hen'),
- ('return',    'Hoan / doi tra',      'service',    'hoan hang|tra hang|doi tra|giao lai|tu choi nhan')
+ ('late',      'Late delivery',            'service',    'giao (cham|tre|lau)|tre (hen|gio)|qua (han|gio)|cho (mai|hoai)|\mlate\M|delay'),
+ ('lost',      'Lost parcel',       'service',    'that lac|mat (hang|don)|khong (nhan|thay) (duoc )?hang|lost'),
+ ('damaged',   'Damaged goods',   'service',    'hu (hong|hai)|mop|meo|vo nat|bep dum|\mvo\M|damaged|rach'),
+ ('rude',      'Courier attitude',     'service',    'shipper.*(cau gat|thai do|vo le|chui|quat)|(cau gat|vo le|thai do te)|rude'),
+ ('tracking',  'Order tracking',   'experience', 'theo doi|tracking|ma van don|khong cap nhat|app (loi|lag)|trang thai don'),
+ ('fee',       'Fees and pricing',           'price',      '\mphi\M|gia cuoc|\mdat\M|\mre\M|tien ship|phu thu|phi ship|cuoc phi'),
+ ('cod',       'COD and refunds',     'price',      '\mcod\M|hoan tien|thu ho|doi soat|den bu|boi thuong'),
+ ('support',   'Customer support',                'service',    'cskh|tong dai|hotline|ho tro|khieu nai|phan hoi|bo mac'),
+ ('promo',     'Promotions',          'promo',      'khuyen mai|ma giam|voucher|freeship|mien phi ship|uu dai|sale'),
+ ('fast',      'Fast delivery',          'service',    'giao nhanh|toc do|hoa toc|trong ngay|nhan hang som|dung hen'),
+ ('return',    'Returns',      'service',    'hoan hang|tra hang|doi tra|giao lai|tu choi nhan')
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO sl.sentiment_term(term, polarity) VALUES

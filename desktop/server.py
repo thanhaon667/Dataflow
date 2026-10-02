@@ -60,6 +60,7 @@ from starlette.staticfiles import StaticFiles
 from desktop.channels_data import ChannelsStore
 from desktop.insights_data import InsightsStore, XLSX_MIME
 from desktop.placements_data import PlacementsStore
+from desktop.social_data import SocialStore
 from desktop.digest_service import DigestService
 from desktop.flow_data import FlowStore
 from desktop.health_data import HealthStore
@@ -91,6 +92,7 @@ class AppContext:
     insights: InsightsStore | None = None   # the Channels page's Insights panel + Excel report (same rollup tables, own cache)
     placements: PlacementsStore | None = None   # the Channels page's Placements panel (the placement rollup only, own cache)
     channels: ChannelsStore | None = None   # the Channels page's feed (marketing rollup report); built in create_app when not given
+    social: SocialStore | None = None       # the Social page's feed (social listening, schema `sl`); built in create_app when not given
     token: str = field(default_factory=lambda: secrets.token_urlsafe(24))
     started_at: float = field(default_factory=time.time)
     quit_event: threading.Event = field(default_factory=threading.Event)
@@ -133,6 +135,8 @@ def create_app(ctx: AppContext) -> FastAPI:
         ctx.insights = InsightsStore(flow=ctx.flow)
     if ctx.placements is None:
         ctx.placements = PlacementsStore(flow=ctx.flow)   # on demand, a few seconds of cache, no thread; reads the placement rollup only
+    if ctx.social is None:
+        ctx.social = SocialStore()   # on demand, a few seconds of cache, no thread; reads the sl schema only
     if ctx.channels is None:
         ctx.channels = ChannelsStore(flow=ctx.flow)   # on demand, a few seconds of cache, no thread; reads the two rollup tables only
     if ctx.health is None:
@@ -274,6 +278,15 @@ def create_app(ctx: AppContext) -> FastAPI:
         if code != 200 or not isinstance(body, (bytes, bytearray)):
             return JSONResponse(body, status_code=code, headers={"Cache-Control": "no-store"})
         return Response(bytes(body), media_type="text/csv; charset=utf-8", headers={"Cache-Control": "no-store", **headers})
+
+    @app.get("/api/social")
+    def social(request: Request) -> JSONResponse:
+        """Social page (social listening): every cube the page slices in the browser. Read-only; reads only the `sl` schema
+        (desktop/social_data.py). `fresh=1` skips the few-second cache; any other parameter NAME is a 400 that names it
+        (checked before the cache, lesson L-098)."""
+        params = _query_lists(request)
+        code, payload = ctx.social.get(params, fresh=(params.get("fresh") or ["0"])[-1] in ("1", "true"))
+        return JSONResponse(payload, status_code=code, headers={"Cache-Control": "no-store"})
 
     @app.get("/api/channels")
     def channels(request: Request) -> JSONResponse:

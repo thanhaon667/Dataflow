@@ -950,3 +950,11 @@ Data Flow map (`tests/` is excluded from the map's script scan).
   `e_db_timeline`) and is in sync again; port 8501 is no longer used by anything here. Kept, unchanged:
   the whole `erp/` pipeline, the e-mail jobs (`daily_digest`, `weekly_report`, `emailer`) and the Script
   Center, which ERP Desk embeds as its Management tab and which still runs standalone on 8502.
+
+## Social listening (Social page)
+
+`db/sql/12_social_listening.sql` creates the additive `sl` schema: a raw landing table for keyword exports, `sl.run_cleaning(batch_id)`
+(dedupe, spam flags, brand / topic / sentiment tagging; dictionaries are editable tables) and analysis views. The Social page of ERP Desk
+(`desktop/social_data.py` + `static/social.{js,css}`, nav item 8, `GET /api/social`) reads only that schema, read-only. To try it with
+invented data: run `12_social_listening.sql`, then `python db/sample/sl_generate_sample.py`. Without the schema the page shows the
+install command instead of numbers.

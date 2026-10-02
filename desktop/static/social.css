@@ -1,0 +1,47 @@
+/* ERP Desk - Social page. Built from the app's own pieces (leads.css / channels.css / report.css): .ld wrapper, .ld-head, .ld-filters,
+   .ld-kpis + .kpi, .ld-grid + .ld-panel, .ch-legend, the Channels setup card. Only what is specific to this page is here. */
+.soc .ld-grid > .span-5 { grid-column: span 5; } .soc .ld-grid > .span-7 { grid-column: span 7; }
+@container ld (max-width: 960px) { .soc .ld-grid > .ld-panel { grid-column: span 12; } .soc .ld-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.soc svg { display: block; width: 100%; overflow: visible; stroke: none; }       /* shell.css gives every svg a currentColor stroke; charts here set their own */
+.soc .btn svg, .soc .cv-ico svg { stroke: currentColor; }
+.soc .cv-ico svg { stroke: var(--ink); }
+.soc svg text { font: 11px var(--font); fill: var(--ink-dim); }
+.soc svg .val { fill: #4b4d55; font-variant-numeric: tabular-nums; }
+.soc .ch-lg { cursor: default; }
+.soc .ch-lg:hover { box-shadow: none; }
+.soc-events { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: #4b4d55; margin-top: 8px; }
+.soc-events b { display: inline-block; min-width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 8px; background: var(--ink); color: #fff; font-size: 10px; margin-right: 5px; }
+.soc-tbl { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.soc-tbl th { text-align: left; padding: 0 10px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; font-weight: 400; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); }
+.soc-tbl td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+.soc-tbl th.n, .soc-tbl td.n { text-align: right; }
+.soc-tbl tbody tr:hover td { background: #fbfaf7; }
+.soc-tag { display: inline-block; padding: 1px 8px; border-radius: 999px; border: 1px solid currentColor; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.soc-dim { color: var(--ink-dim); }
+.soc .alert { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--grid); font-size: 13px; }
+.soc .alert:last-child { border: 0; }
+.soc details { margin-top: 8px; } .soc summary { cursor: pointer; color: var(--ink-dim); font-size: 12px; font-weight: 600; }
+.soc summary:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.soc .w { overflow-x: auto; }
+@media (max-width: 700px) { .soc .alert { grid-template-columns: 1fr; gap: 4px; } .soc .alert .soc-tag { justify-self: start; } }
+.soc-tip { position: fixed; pointer-events: none; z-index: 60; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 11px; font-family: var(--font); font-size: 12px; box-shadow: 0 10px 28px rgba(28, 29, 34, .16); max-width: 270px; display: none; }
+.soc-tip .r { display: flex; justify-content: space-between; gap: 14px; font-variant-numeric: tabular-nums; }
+.soc-tip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+#s-tTop .soc-tbl td:nth-child(-n+3) { white-space: nowrap; }
+#s-tTop .soc-tbl td:last-child { min-width: 240px; }
+
+.soc-find { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.soc-find li { border: 1px solid var(--line); border-left: 4px solid #cfc9bb; border-radius: 14px; padding: 10px 14px; background: #fbfaf7; }
+.soc-find li.sev-warn { border-left-color: var(--amber); } .soc-find li.sev-crit { border-left-color: var(--red); }
+.soc-find-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; font-size: 13.5px; }
+.soc-find-h b { font-weight: 600; flex: 1 1 320px; min-width: 0; }
+.soc-sev { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); }
+.sev-warn .soc-sev { color: #7a5f00; } .sev-crit .soc-sev { color: #b32a2f; }
+.soc-conf { font-size: 10.5px; color: var(--ink-dim); }
+.soc-ev { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.soc-act { margin: 6px 0 0; font-size: 12.5px; color: #4b4d55; }
+.soc-ai { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.soc-ai-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.soc-ai-h h4 { margin: 0; font-size: 14px; font-weight: 700; }
+.soc-ai-text { margin-top: 8px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--violet) 7%, #fff); border: 1px solid color-mix(in srgb, var(--violet) 25%, var(--line)); font-size: 13.5px; line-height: 1.6; max-width: 900px; }
+.soc-ai-text p { margin: 0 0 8px; } .soc-ai-text p:last-child { margin: 0; }

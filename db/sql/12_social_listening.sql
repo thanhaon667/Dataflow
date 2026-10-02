@@ -276,10 +276,12 @@ BEGIN
     WHERE m.first_raw_id IN (SELECT raw_id FROM _d)
     ON CONFLICT DO NOTHING;
 
-    -- sentiment: whole-word lexicon hits; score>=1 positive, <=-1 negative
+    -- sentiment: whole-word lexicon hits; score>=1 positive, <=-1 negative.
+    -- A hit right after "khong" / "chua" / "dung" ("khong tre", "chua thay hang tot") flips polarity.
     UPDATE sl.mention m SET sentiment_score = s.score,
         sentiment = CASE WHEN s.score >= 1 THEN 'positive' WHEN s.score <= -1 THEN 'negative' ELSE 'neutral' END
-    FROM (SELECT m2.id, coalesce(sum(st.polarity),0)::SMALLINT AS score
+    FROM (SELECT m2.id, coalesce(sum(st.polarity * CASE WHEN m2.content_norm ~ ('(khong|chua|dung) (bi |co |con )?'||st.term||'([^a-z0-9]|$)')
+                                                      THEN -1 ELSE 1 END),0)::SMALLINT AS score
           FROM sl.mention m2
           LEFT JOIN sl.sentiment_term st ON m2.content_norm ~ ('(^|[^a-z0-9])'||st.term||'([^a-z0-9]|$)')
           WHERE m2.first_raw_id IN (SELECT raw_id FROM _d)
@@ -350,7 +352,7 @@ INSERT INTO sl.topic(code, label, theme, pattern) VALUES
  ('damaged',   'Hang hu / mop meo',   'service',    'hu (hong|hai)|mop|meo|vo nat|bep dum|\mvo\M|damaged|rach'),
  ('rude',      'Thai do shipper',     'service',    'shipper.*(cau gat|thai do|vo le|chui|quat)|(cau gat|vo le|thai do te)|rude'),
  ('tracking',  'Theo doi don hang',   'experience', 'theo doi|tracking|ma van don|khong cap nhat|app (loi|lag)|trang thai don'),
- ('fee',       'Phi / gia',           'price',      '\mphi\M|gia cuoc|dat|re\M|tien ship|phu thu|phi ship|cuoc phi'),
+ ('fee',       'Phi / gia',           'price',      '\mphi\M|gia cuoc|\mdat\M|\mre\M|tien ship|phu thu|phi ship|cuoc phi'),
  ('cod',       'COD / hoan tien',     'price',      '\mcod\M|hoan tien|thu ho|doi soat|den bu|boi thuong'),
  ('support',   'CSKH',                'service',    'cskh|tong dai|hotline|ho tro|khieu nai|phan hoi|bo mac'),
  ('promo',     'Khuyen mai',          'promo',      'khuyen mai|ma giam|voucher|freeship|mien phi ship|uu dai|sale'),

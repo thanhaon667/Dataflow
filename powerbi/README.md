@@ -55,6 +55,6 @@ Edits made in Power BI Desktop are kept in the project folders, but a re-run of 
 ## Honest status
 
 These files were written and checked by script (every field a visual uses exists in the model, no overlapping visuals, valid JSON) but
-**have not been opened in Power BI Desktop**. If Desktop reports a file it cannot read, open `ERPDesk.SemanticModel` alone first
+**had one first open in Power BI Desktop (September 2026, 2.158)**, which rejected the `$schema` of `definition.pbir`; that is fixed and a script check now guards it. Other problems may remain: send the exact error text. If Desktop reports a file it cannot read, open `ERPDesk.SemanticModel` alone first
 (*File > Open > Power BI project*), then recreate the page layouts from the tables above; the model and the measures are the valuable part.
 The Channels report is empty until marketing data is loaded into the rollup tables.

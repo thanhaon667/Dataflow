@@ -255,7 +255,7 @@ def write_report(out: Path, pages: list[Page], theme_json: dict) -> None:
     (d / "pages").mkdir(parents=True)
     (out / "StaticResources" / "RegisteredResources").mkdir(parents=True)
     (out / "StaticResources" / "RegisteredResources" / "ERPDesk.json").write_text(json.dumps(theme_json, indent=2), encoding="utf-8")
-    (out / "definition.pbir").write_text(json.dumps({"$schema": f"{BASE}/definitionProperties/2.0.0/schema.json", "version": "4.0",
+    (out / "definition.pbir").write_text(json.dumps({"$schema": f"{BASE}/report/definitionProperties/2.0.0/schema.json", "version": "4.0",
                                                      "datasetReference": {"byPath": {"path": "../ERPDesk.SemanticModel"}}}, indent=2) + "\n", encoding="utf-8")
     (d / "version.json").write_text(json.dumps({"$schema": f"{BASE}/report/definition/versionMetadata/1.0.0/schema.json", "version": "2.0.0"}, indent=2) + "\n", encoding="utf-8")
     (d / "report.json").write_text(json.dumps({
@@ -413,6 +413,23 @@ def check(pages_by_report: dict[str, list[Page]]) -> list[str]:
     return bad
 
 
+def check_schema_urls(root: Path) -> list[str]:
+    """Power BI Desktop rejects a report file whose $schema is not under .../fabric/item/report/<kind>/<n>.x.x/schema.json."""
+    import re
+    pat = re.compile(r"^https://developer\.microsoft\.com/json-schemas/fabric/item/report/[A-Za-z/]+/\d+\.\d+\.\d+/schema\.json$")
+    bad = []
+    for f in root.glob("*.Report/**/*.json"):
+        if "StaticResources" in f.parts:
+            continue
+        sch = json.loads(f.read_text(encoding="utf-8")).get("$schema")
+        if not sch or not pat.match(sch):
+            bad.append(f"{f.relative_to(root)}: $schema {sch!r} does not match the report schema pattern")
+    for f in root.glob("*.Report/definition.pbir"):
+        if "/definitionProperties/" not in json.loads(f.read_text(encoding="utf-8")).get("$schema", ""):
+            bad.append(f"{f.name}: wrong $schema")
+    return bad
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
@@ -431,6 +448,10 @@ def main() -> int:
     for name, pages in built.items():
         write_report(ROOT / f"{name}.Report", pages, th)
         (ROOT / f"{name}.pbip").write_text(json.dumps({"version": "1.0", "artifacts": [{"report": {"path": f"{name}.Report"}}], "settings": {"enableAutoRecovery": True}}, indent=2) + "\n", encoding="utf-8")
+    bad = check_schema_urls(ROOT)
+    if bad:
+        print("\n".join(bad))
+        return 1
     n = sum(len(p.visuals) for ps in built.values() for p in ps)
     print(f"wrote model ({len(MODEL)} tables, {sum(len(s['measures']) for s in MODEL.values())} measures), {len(built)} reports, {sum(len(ps) for ps in built.values())} pages, {n} visuals")
     return 0

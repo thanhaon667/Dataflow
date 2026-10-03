@@ -958,3 +958,18 @@ Data Flow map (`tests/` is excluded from the map's script scan).
 (`desktop/social_data.py` + `static/social.{js,css}`, nav item 8, `GET /api/social`) reads only that schema, read-only. To try it with
 invented data: run `12_social_listening.sql`, then `python db/sample/sl_generate_sample.py`. Without the schema the page shows the
 install command instead of numbers.
+
+### Sample data for an offline machine
+
+The invented social-listening data (4 brands, 37k raw rows, 33k clean mentions, topics, events) and 120 sample leads are packed as compressed
+CSV files in `db/sample/data/` (about 4 MB, in git). To get exactly this data set with no network and no generator:
+
+```
+psql ... -f db/sql/12_social_listening.sql          # once; also 01-05, 07-11 and 14 for the rest of the project
+python db/sample/sample_data.py load                # replaces the sl data and the @example.com sample leads, in one transaction
+```
+
+`load` leaves the dictionaries (`sl.topic`, `sl.sentiment_term`, `sl.spam_pattern`) and every other lead alone; `--dbname NAME` runs it on a scratch
+database first. `python db/sample/sample_data.py export` rewrites the files from the database. The data covers 5 Apr - 2 Oct 2026.
+`db/sample/sl_generate_sample.py` makes a fresh, different set relative to today's date instead.
+

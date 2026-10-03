@@ -46,11 +46,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Clicks"
+                  "Property": "Total Clicks"
                 }
               },
-              "queryRef": "Channels.Clicks",
-              "nativeQueryRef": "Clicks"
+              "queryRef": "Channels.Total Clicks",
+              "nativeQueryRef": "Total Clicks"
             }
           ]
         }

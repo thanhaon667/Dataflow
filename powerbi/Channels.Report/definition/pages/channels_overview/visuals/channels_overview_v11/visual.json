@@ -46,11 +46,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Spend"
+                  "Property": "Spend (one currency)"
                 }
               },
-              "queryRef": "Channels.Spend",
-              "nativeQueryRef": "Spend"
+              "queryRef": "Channels.Spend (one currency)",
+              "nativeQueryRef": "Spend (one currency)"
             }
           ]
         }

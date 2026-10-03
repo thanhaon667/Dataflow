@@ -50,8 +50,8 @@ MODEL = {
                     ("comments", "i", {}), ("shares", "i", {}), ("views", "i", {}), ("engagement", "i", {}), ("snippet", "s", {})],
         "measures": [
             ("Mentions", "COUNTROWS(Mentions)", "#,0"),
-            ("Engagement", "SUM(Mentions[engagement])", "#,0"),
-            ("Views", "SUM(Mentions[views])", "#,0"),
+            ("Total Engagement", "SUM(Mentions[engagement])", "#,0"),
+            ("Total Views", "SUM(Mentions[views])", "#,0"),
             ("Positive", 'CALCULATE([Mentions], Mentions[sentiment] = "positive")', "#,0"),
             ("Neutral", 'CALCULATE([Mentions], Mentions[sentiment] = "neutral")', "#,0"),
             ("Negative", 'CALCULATE([Mentions], Mentions[sentiment] = "negative")', "#,0"),
@@ -62,7 +62,7 @@ MODEL = {
             ("Mentions Previous Month", "CALCULATE([Mentions], DATEADD('Calendar'[date], -1, MONTH))", "#,0"),
             ("Mentions vs Previous Month", "DIVIDE([Mentions] - [Mentions Previous Month], [Mentions Previous Month])", "+0.0%;-0.0%;0.0%"),
             ("Avg Mentions per Day", "AVERAGEX(VALUES('Calendar'[date]), [Mentions])", "#,0"),
-            ("Engagement per Mention", "DIVIDE([Engagement], [Mentions])", "#,0.0"),
+            ("Engagement per Mention", "DIVIDE([Total Engagement], [Mentions])", "#,0.0"),
         ],
     },
     "MentionTopics": {
@@ -112,19 +112,19 @@ MODEL = {
                     ("grain", "s", {}), ("impressions", "i", {}), ("clicks", "i", {}), ("sessions", "i", {}), ("conversions", "i", {}),
                     ("spend", "d", {}), ("revenue", "d", {})],
         "measures": [
-            ("Sessions", "SUM(Channels[sessions])", "#,0"),
-            ("Clicks", "SUM(Channels[clicks])", "#,0"),
-            ("Impressions", "SUM(Channels[impressions])", "#,0"),
-            ("Conversions", "SUM(Channels[conversions])", "#,0"),
-            ("CTR", "DIVIDE([Clicks], [Impressions])", "0.00%"),
-            ("Conversion Rate", "DIVIDE([Conversions], [Clicks])", "0.00%"),
+            ("Total Sessions", "SUM(Channels[sessions])", "#,0"),
+            ("Total Clicks", "SUM(Channels[clicks])", "#,0"),
+            ("Total Impressions", "SUM(Channels[impressions])", "#,0"),
+            ("Total Conversions", "SUM(Channels[conversions])", "#,0"),
+            ("CTR", "DIVIDE([Total Clicks], [Total Impressions])", "0.00%"),
+            ("Conversion Rate", "DIVIDE([Total Conversions], [Total Clicks])", "0.00%"),
             # Money is never added across currencies: these show a value only while ONE currency is in the filter context.
-            ("Spend", "IF(HASONEVALUE(Channels[currency]), SUM(Channels[spend]), BLANK())", "#,0.00"),
-            ("Revenue", "IF(HASONEVALUE(Channels[currency]), SUM(Channels[revenue]), BLANK())", "#,0.00"),
-            ("Cost per Conversion", "IF(HASONEVALUE(Channels[currency]), DIVIDE(SUM(Channels[spend]), [Conversions]), BLANK())", "#,0.00"),
+            ("Spend (one currency)", "IF(HASONEVALUE(Channels[currency]), SUM(Channels[spend]), BLANK())", "#,0.00"),
+            ("Revenue (one currency)", "IF(HASONEVALUE(Channels[currency]), SUM(Channels[revenue]), BLANK())", "#,0.00"),
+            ("Cost per Conversion", "IF(HASONEVALUE(Channels[currency]), DIVIDE(SUM(Channels[spend]), [Total Conversions]), BLANK())", "#,0.00"),
             ("Currencies in View", "DISTINCTCOUNT(Channels[currency])", "0"),
-            ("Sessions Previous Month", "CALCULATE([Sessions], DATEADD('Calendar'[date], -1, MONTH))", "#,0"),
-            ("Sessions vs Previous Month", "DIVIDE([Sessions] - [Sessions Previous Month], [Sessions Previous Month])", "+0.0%;-0.0%;0.0%"),
+            ("Sessions Previous Month", "CALCULATE([Total Sessions], DATEADD('Calendar'[date], -1, MONTH))", "#,0"),
+            ("Sessions vs Previous Month", "DIVIDE([Total Sessions] - [Sessions Previous Month], [Sessions Previous Month])", "+0.0%;-0.0%;0.0%"),
         ],
     },
 }
@@ -310,7 +310,7 @@ def social() -> list[Page]:
     slicer(p, 16, 420, col("Calendar", "date"), "Date range", "Between")
     slicer(p, 448, 280, col("Mentions", "brand"), "Brand")
     slicer(p, 740, 280, col("Mentions", "platform"), "Channel")
-    for i, (m, t) in enumerate([("Mentions", "Mentions"), ("Engagement", "Engagement"), ("Net Sentiment", "Net sentiment"), ("Negative %", "Negative share"), ("Share of Voice", "Share of voice")]):
+    for i, (m, t) in enumerate([("Mentions", "Mentions"), ("Total Engagement", "Engagement"), ("Net Sentiment", "Net sentiment"), ("Negative %", "Negative share"), ("Share of Voice", "Share of voice")]):
         kpi(p, i, mea("Mentions", m), t)
     p.add("lineChart", 16, 232, 760, 238, {"Category": [col("Calendar", "date")], "Y": [mea("Mentions", "Mentions")], "Series": [col("Mentions", "brand")]}, title="Mentions per day")
     p.add("hundredPercentStackedBarChart", 788, 232, 476, 238, {"Category": [col("Mentions", "brand")], "Y": [mea("Mentions", "Mentions")], "Series": [col("Mentions", "sentiment")]}, title="Sentiment mix per brand")
@@ -323,8 +323,8 @@ def social() -> list[Page]:
     slicer(d, 740, 280, col("Mentions", "sentiment"), "Sentiment")
     d.add("pivotTable", 16, 138, 620, 296, {"Rows": [col("MentionTopics", "topic")], "Columns": [col("MentionTopics", "brand")], "Values": [mea("MentionTopics", "Topic Negative %")]}, title="Negative share by topic and brand")
     d.add("clusteredColumnChart", 648, 138, 616, 296, {"Category": [col("Mentions", "hour_of_day")], "Y": [mea("Mentions", "Mentions")]}, title="Posts by hour of day")
-    d.add("tableEx", 16, 446, 760, 262, {"Values": [col("Mentions", "date"), col("Mentions", "brand"), col("Mentions", "platform"), col("Mentions", "sentiment"), mea("Mentions", "Engagement"), col("Mentions", "snippet")]},
-          title="Posts with most engagement", sort=(mea("Mentions", "Engagement"), "Descending"))
+    d.add("tableEx", 16, 446, 760, 262, {"Values": [col("Mentions", "date"), col("Mentions", "brand"), col("Mentions", "platform"), col("Mentions", "sentiment"), mea("Mentions", "Total Engagement"), col("Mentions", "snippet")]},
+          title="Posts with most engagement", sort=(mea("Mentions", "Total Engagement"), "Descending"))
     d.add("tableEx", 788, 446, 476, 126, {"Values": [col("Events", "date"), col("Events", "label")]}, title="Events marked on the charts")
     d.add("tableEx", 788, 582, 476, 126, {"Values": [col("Batches", "source_file"), mea("Batches", "Rows Loaded"), mea("Batches", "Rows Removed"), mea("Batches", "Rows Kept")]}, title="Cleaning: rows in and out")
     return [p, d]
@@ -363,19 +363,19 @@ def channels() -> list[Page]:
     slicer(p, 448, 220, col("Channels", "channel"), "Channel")
     slicer(p, 680, 160, col("Channels", "currency"), "Currency")
     slicer(p, 852, 200, col("Channels", "paid_or_organic"), "Paid or organic")
-    for i, (m, t) in enumerate([("Sessions", "Sessions"), ("Clicks", "Clicks"), ("Conversions", "Conversions"), ("Conversion Rate", "Conversion rate"), ("Spend", "Spend (one currency)")]):
+    for i, (m, t) in enumerate([("Total Sessions", "Sessions"), ("Total Clicks", "Clicks"), ("Total Conversions", "Conversions"), ("Conversion Rate", "Conversion rate"), ("Spend (one currency)", "Spend (one currency)")]):
         kpi(p, i, mea("Channels", m), t)
-    p.add("lineChart", 16, 232, 760, 238, {"Category": [col("Calendar", "date")], "Y": [mea("Channels", "Sessions")], "Series": [col("Channels", "channel")]}, title="Sessions per day")
-    p.add("clusteredBarChart", 788, 232, 476, 238, {"Category": [col("Channels", "channel")], "Y": [mea("Channels", "Conversions")]}, title="Conversions by channel", sort=(mea("Channels", "Conversions"), "Descending"))
-    p.add("tableEx", 16, 482, 1248, 226, {"Values": [col("Channels", "channel"), mea("Channels", "Sessions"), mea("Channels", "Clicks"), mea("Channels", "CTR"), mea("Channels", "Conversions"),
-                                                   mea("Channels", "Conversion Rate"), mea("Channels", "Spend"), mea("Channels", "Revenue"), mea("Channels", "Cost per Conversion")]}, title="Per channel")
+    p.add("lineChart", 16, 232, 760, 238, {"Category": [col("Calendar", "date")], "Y": [mea("Channels", "Total Sessions")], "Series": [col("Channels", "channel")]}, title="Sessions per day")
+    p.add("clusteredBarChart", 788, 232, 476, 238, {"Category": [col("Channels", "channel")], "Y": [mea("Channels", "Total Conversions")]}, title="Conversions by channel", sort=(mea("Channels", "Total Conversions"), "Descending"))
+    p.add("tableEx", 16, 482, 1248, 226, {"Values": [col("Channels", "channel"), mea("Channels", "Total Sessions"), mea("Channels", "Total Clicks"), mea("Channels", "CTR"), mea("Channels", "Total Conversions"),
+                                                   mea("Channels", "Conversion Rate"), mea("Channels", "Spend (one currency)"), mea("Channels", "Revenue (one currency)"), mea("Channels", "Cost per Conversion")]}, title="Per channel")
     d = Page("channels_detail", "Trend")
     d.heading("Channels: trend", "Month by month, and how paid compares with organic.")
     slicer(d, 16, 420, col("Calendar", "date"), "Date range", "Between")
     slicer(d, 448, 220, col("Channels", "channel"), "Channel")
     slicer(d, 680, 160, col("Channels", "currency"), "Currency")
-    d.add("pivotTable", 16, 138, 760, 570, {"Rows": [col("Channels", "channel")], "Columns": [col("Calendar", "year_month")], "Values": [mea("Channels", "Conversions")]}, title="Conversions by channel and month")
-    d.add("clusteredColumnChart", 788, 138, 476, 280, {"Category": [col("Channels", "paid_or_organic")], "Y": [mea("Channels", "Sessions")], "Series": [col("Channels", "medium")]}, title="Sessions: paid or organic")
+    d.add("pivotTable", 16, 138, 760, 570, {"Rows": [col("Channels", "channel")], "Columns": [col("Calendar", "year_month")], "Values": [mea("Channels", "Total Conversions")]}, title="Conversions by channel and month")
+    d.add("clusteredColumnChart", 788, 138, 476, 280, {"Category": [col("Channels", "paid_or_organic")], "Y": [mea("Channels", "Total Sessions")], "Series": [col("Channels", "medium")]}, title="Sessions: paid or organic")
     d.add("clusteredColumnChart", 788, 430, 476, 278, {"Category": [col("Calendar", "year_month")], "Y": [mea("Channels", "Sessions vs Previous Month")]}, title="Sessions vs previous month")
     return [p, d]
 
@@ -402,10 +402,16 @@ def check(pages_by_report: dict[str, list[Page]]) -> list[str]:
                         ok = prop in (cols if kind == "Column" else meas).get(t, set())
                         if not ok:
                             bad.append(f"{rep}/{p.name}/{v['name']}: {kind} {t}[{prop}] is not in the model")
+    seen_measures: dict[str, str] = {}
     for t, s in MODEL.items():
-        names = [c[0] for c in s["columns"]] + [m[0] for m in s["measures"]]
-        if len(names) != len(set(names)):
-            bad.append(f"{t}: duplicate column/measure name")
+        # Power BI compares names case-insensitively: a measure may not share a name with a column of its table, and measure names are unique model-wide
+        names = [c[0].lower() for c in s["columns"]] + [m[0].lower() for m in s["measures"]]
+        for n in sorted({n for n in names if names.count(n) > 1}):
+            bad.append(f"{t}: '{n}' is used twice among the columns and measures (names are case-insensitive)")
+        for m in s["measures"]:
+            if m[0].lower() in seen_measures:
+                bad.append(f"measure '{m[0]}' of {t} repeats a measure of {seen_measures[m[0].lower()]}")
+            seen_measures[m[0].lower()] = t
         for _n, dax, _f in s["measures"]:
             for ref in __import__("re").findall(r"\[([^\]]+)\]", dax):
                 if ref not in meas.get(t, set()) and ref not in {n for x in MODEL.values() for n in [c[0] for c in x["columns"]] + [m[0] for m in x["measures"]]}:

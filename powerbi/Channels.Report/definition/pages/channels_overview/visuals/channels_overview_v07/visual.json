@@ -46,11 +46,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Sessions"
+                  "Property": "Total Sessions"
                 }
               },
-              "queryRef": "Channels.Sessions",
-              "nativeQueryRef": "Sessions"
+              "queryRef": "Channels.Total Sessions",
+              "nativeQueryRef": "Total Sessions"
             }
           ]
         }

@@ -36,7 +36,7 @@ Because the model is DirectQuery, nothing is imported; pages query PostgreSQL as
 
 ## Rules the model keeps (same as the ERP Desk pages)
 
-- **Money is never added across currencies.** `Spend`, `Revenue` and `Cost per Conversion` return a value only while one currency is in the filter; pick a currency in the slicer to see them.
+- **Money is never added across currencies.** `Spend (one currency)`, `Revenue (one currency)` and `Cost per Conversion` return a value only while one currency is in the filter; pick a currency in the slicer to see them.
 - A rate with no denominator is blank, not 0 (`DIVIDE` without a third argument).
 - Spam posts and duplicates are already removed by `sl.run_cleaning`; the views read only `sl.v_mention`.
 - Leads' "within SLA" compares the first synced comment with `leads.sla_due_at`, which holds the 5-business-hour deadline calculated by `erp/business_hours.py`.
@@ -55,6 +55,6 @@ Edits made in Power BI Desktop are kept in the project folders, but a re-run of 
 ## Honest status
 
 These files were written and checked by script (every field a visual uses exists in the model, no overlapping visuals, valid JSON) but
-**had one first open in Power BI Desktop (September 2026, 2.158)**, which rejected the `$schema` of `definition.pbir`; that is fixed and a script check now guards it. Other problems may remain: send the exact error text. If Desktop reports a file it cannot read, open `ERPDesk.SemanticModel` alone first
+**were opened once in Power BI Desktop (September 2026, 2.158)**, which found two problems (a wrong `$schema` in `definition.pbir`, and measures named like a column: Power BI compares names case-insensitively); both are fixed and the build check now guards them. Other problems may remain: send the exact error text. If Desktop reports a file it cannot read, open `ERPDesk.SemanticModel` alone first
 (*File > Open > Power BI project*), then recreate the page layouts from the tables above; the model and the measures are the valuable part.
 The Channels report is empty until marketing data is loaded into the rollup tables.

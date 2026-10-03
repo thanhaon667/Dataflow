@@ -46,11 +46,11 @@
                       "Entity": "Mentions"
                     }
                   },
-                  "Property": "Engagement"
+                  "Property": "Total Engagement"
                 }
               },
-              "queryRef": "Mentions.Engagement",
-              "nativeQueryRef": "Engagement"
+              "queryRef": "Mentions.Total Engagement",
+              "nativeQueryRef": "Total Engagement"
             }
           ]
         }

@@ -60,11 +60,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Sessions"
+                  "Property": "Total Sessions"
                 }
               },
-              "queryRef": "Channels.Sessions",
-              "nativeQueryRef": "Sessions"
+              "queryRef": "Channels.Total Sessions",
+              "nativeQueryRef": "Total Sessions"
             },
             {
               "field": {
@@ -74,11 +74,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Clicks"
+                  "Property": "Total Clicks"
                 }
               },
-              "queryRef": "Channels.Clicks",
-              "nativeQueryRef": "Clicks"
+              "queryRef": "Channels.Total Clicks",
+              "nativeQueryRef": "Total Clicks"
             },
             {
               "field": {
@@ -102,11 +102,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Conversions"
+                  "Property": "Total Conversions"
                 }
               },
-              "queryRef": "Channels.Conversions",
-              "nativeQueryRef": "Conversions"
+              "queryRef": "Channels.Total Conversions",
+              "nativeQueryRef": "Total Conversions"
             },
             {
               "field": {
@@ -130,11 +130,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Spend"
+                  "Property": "Spend (one currency)"
                 }
               },
-              "queryRef": "Channels.Spend",
-              "nativeQueryRef": "Spend"
+              "queryRef": "Channels.Spend (one currency)",
+              "nativeQueryRef": "Spend (one currency)"
             },
             {
               "field": {
@@ -144,11 +144,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Revenue"
+                  "Property": "Revenue (one currency)"
                 }
               },
-              "queryRef": "Channels.Revenue",
-              "nativeQueryRef": "Revenue"
+              "queryRef": "Channels.Revenue (one currency)",
+              "nativeQueryRef": "Revenue (one currency)"
             },
             {
               "field": {

@@ -96,13 +96,13 @@ table Mentions
 		formatString: #,0
 		lineageTag: debe09be-0a30-5f1e-bb70-632115c09d23
 
-	measure Engagement = SUM(Mentions[engagement])
+	measure 'Total Engagement' = SUM(Mentions[engagement])
 		formatString: #,0
-		lineageTag: 318c6376-55b2-5e25-b736-9bff2c55bb34
+		lineageTag: 32d7c1c8-4bd1-5f0e-a13e-3099f10bea6b
 
-	measure Views = SUM(Mentions[views])
+	measure 'Total Views' = SUM(Mentions[views])
 		formatString: #,0
-		lineageTag: 4242999f-9f19-5f6c-8b33-f3b1f54a387f
+		lineageTag: b89af252-6218-5b60-9ae3-3b432a28e99a
 
 	measure Positive = CALCULATE([Mentions], Mentions[sentiment] = "positive")
 		formatString: #,0
@@ -144,7 +144,7 @@ table Mentions
 		formatString: #,0
 		lineageTag: dd656fa4-853e-5e8a-8fef-b1d39f70317f
 
-	measure 'Engagement per Mention' = DIVIDE([Engagement], [Mentions])
+	measure 'Engagement per Mention' = DIVIDE([Total Engagement], [Mentions])
 		formatString: #,0.0
 		lineageTag: 48163421-93aa-59e0-ae31-db828ca6f9a6
 

@@ -74,39 +74,39 @@ table Channels
 		summarizeBy: none
 		sourceColumn: revenue
 
-	measure Sessions = SUM(Channels[sessions])
+	measure 'Total Sessions' = SUM(Channels[sessions])
 		formatString: #,0
-		lineageTag: 86df000b-8e1e-566e-991a-933b28c7d81c
+		lineageTag: fd2e944a-7ca5-56d3-b4ad-9e95a8c36d12
 
-	measure Clicks = SUM(Channels[clicks])
+	measure 'Total Clicks' = SUM(Channels[clicks])
 		formatString: #,0
-		lineageTag: b6909e85-8829-5174-a88b-29b916cd0b15
+		lineageTag: da1e7ba9-0a93-5727-83af-b7d806abcf34
 
-	measure Impressions = SUM(Channels[impressions])
+	measure 'Total Impressions' = SUM(Channels[impressions])
 		formatString: #,0
-		lineageTag: a927061d-9d54-5d8c-ac3f-71c970c66553
+		lineageTag: 0065e1b5-2a6a-503f-b3ce-1dc845676eef
 
-	measure Conversions = SUM(Channels[conversions])
+	measure 'Total Conversions' = SUM(Channels[conversions])
 		formatString: #,0
-		lineageTag: ab3a09f1-d354-52bd-ab44-23b37193a8c2
+		lineageTag: 26f7c50d-177d-5194-98da-47119437f04e
 
-	measure CTR = DIVIDE([Clicks], [Impressions])
+	measure CTR = DIVIDE([Total Clicks], [Total Impressions])
 		formatString: 0.00%
 		lineageTag: dd69f42b-d98c-59ae-bc5c-f71a9ad65840
 
-	measure 'Conversion Rate' = DIVIDE([Conversions], [Clicks])
+	measure 'Conversion Rate' = DIVIDE([Total Conversions], [Total Clicks])
 		formatString: 0.00%
 		lineageTag: 63c26e41-dbe8-5069-a64d-3f517230c738
 
-	measure Spend = IF(HASONEVALUE(Channels[currency]), SUM(Channels[spend]), BLANK())
+	measure 'Spend (one currency)' = IF(HASONEVALUE(Channels[currency]), SUM(Channels[spend]), BLANK())
 		formatString: #,0.00
-		lineageTag: 3182cb21-d59b-5c4b-87ae-eadbb00b55e8
+		lineageTag: e5536b2a-b7ad-5a2f-8de6-10c34f440b35
 
-	measure Revenue = IF(HASONEVALUE(Channels[currency]), SUM(Channels[revenue]), BLANK())
+	measure 'Revenue (one currency)' = IF(HASONEVALUE(Channels[currency]), SUM(Channels[revenue]), BLANK())
 		formatString: #,0.00
-		lineageTag: 94f56191-822a-5171-9e45-81b32c621884
+		lineageTag: a34bc8e2-331f-56f7-b811-dd635192eef1
 
-	measure 'Cost per Conversion' = IF(HASONEVALUE(Channels[currency]), DIVIDE(SUM(Channels[spend]), [Conversions]), BLANK())
+	measure 'Cost per Conversion' = IF(HASONEVALUE(Channels[currency]), DIVIDE(SUM(Channels[spend]), [Total Conversions]), BLANK())
 		formatString: #,0.00
 		lineageTag: f1421342-8352-59c8-a2f0-3031508faf2e
 
@@ -114,11 +114,11 @@ table Channels
 		formatString: 0
 		lineageTag: 4fecfd3d-ca12-59b4-bf5d-77118f90ff2c
 
-	measure 'Sessions Previous Month' = CALCULATE([Sessions], DATEADD('Calendar'[date], -1, MONTH))
+	measure 'Sessions Previous Month' = CALCULATE([Total Sessions], DATEADD('Calendar'[date], -1, MONTH))
 		formatString: #,0
 		lineageTag: c2d9c381-9557-543d-9964-83c7eaa6845c
 
-	measure 'Sessions vs Previous Month' = DIVIDE([Sessions] - [Sessions Previous Month], [Sessions Previous Month])
+	measure 'Sessions vs Previous Month' = DIVIDE([Total Sessions] - [Sessions Previous Month], [Sessions Previous Month])
 		formatString: +0.0%;-0.0%;0.0%
 		lineageTag: b134afcf-8c88-5c6e-9337-ed8b56a4acff
 

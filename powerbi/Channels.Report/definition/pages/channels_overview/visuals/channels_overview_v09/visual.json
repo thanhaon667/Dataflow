@@ -46,11 +46,11 @@
                       "Entity": "Channels"
                     }
                   },
-                  "Property": "Conversions"
+                  "Property": "Total Conversions"
                 }
               },
-              "queryRef": "Channels.Conversions",
-              "nativeQueryRef": "Conversions"
+              "queryRef": "Channels.Total Conversions",
+              "nativeQueryRef": "Total Conversions"
             }
           ]
         }
